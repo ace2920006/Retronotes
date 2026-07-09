@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
+  console.log("[ProfilePage] Debugging - rendering profile for user ID:", params.id);
   // In a real app, fetch user by params.id
   
   return (
