@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchAPI } from "@/lib/api";
+import { revalidatePath } from "next/cache";
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
   // Access Route params. In Next.js 15+, params is a promise, so we can await it
@@ -14,7 +15,7 @@ export default async function ProfilePage({ params }: { params: { id: string } }
   let fetchError = false;
 
   try {
-    profile = await fetchAPI(`/users/${id}`);
+    profile = await fetchAPI(`/users/${id}`, { token });
     posts = await fetchAPI(`/posts/user/${id}`, { token });
   } catch (error) {
     console.error("Failed to fetch profile/posts:", error);
@@ -35,6 +36,30 @@ export default async function ProfilePage({ params }: { params: { id: string } }
   }
 
   const isOwnProfile = session?.user && (session.user as any).id === profile.id;
+
+  async function toggleFollow() {
+    "use server";
+    const session = await auth();
+    if (!session) return;
+    const token = (session as any).accessToken;
+
+    try {
+      if (profile.isFollowing) {
+        await fetchAPI(`/follows/${id}`, {
+          method: "DELETE",
+          token,
+        });
+      } else {
+        await fetchAPI(`/follows/${id}`, {
+          method: "POST",
+          token,
+        });
+      }
+      revalidatePath(`/profile/${id}`);
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center py-16 px-4 bg-gray-950 text-gray-200">
@@ -61,7 +86,8 @@ export default async function ProfilePage({ params }: { params: { id: string } }
             </p>
             <div className="flex justify-center md:justify-start gap-6 text-xs text-gray-500 mb-6">
               <span><strong className="text-gray-300">{posts.length}</strong> Published Works</span>
-              <span><strong className="text-gray-300">0</strong> Followers</span>
+              <span><strong className="text-gray-300">{profile.followersCount || 0}</strong> Followers</span>
+              <span><strong className="text-gray-300">{profile.followingCount || 0}</strong> Following</span>
             </div>
             
             {isOwnProfile ? (
@@ -72,9 +98,18 @@ export default async function ProfilePage({ params }: { params: { id: string } }
                 🖊️ Write new poem
               </Link>
             ) : (
-              <button className="px-6 py-2 bg-gray-900 hover:bg-gray-850 border border-gray-800 text-gray-300 hover:text-white font-medium rounded-full transition-all text-xs cursor-pointer">
-                Follow Writer
-              </button>
+              <form action={toggleFollow}>
+                <button
+                  type="submit"
+                  className={`px-6 py-2 border rounded-full transition-all text-xs cursor-pointer font-semibold ${
+                    profile.isFollowing
+                      ? "bg-gray-900 border-gray-800 text-gray-400 hover:text-red-400 hover:border-red-900/40 hover:bg-red-950/20"
+                      : "bg-white border-transparent text-gray-950 hover:bg-gray-200"
+                  }`}
+                >
+                  {profile.isFollowing ? "Unfollow" : "Follow Writer"}
+                </button>
+              </form>
             )}
           </div>
         </div>

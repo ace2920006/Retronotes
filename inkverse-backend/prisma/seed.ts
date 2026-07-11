@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient({});
@@ -26,7 +26,17 @@ async function main() {
     },
   });
 
-  console.log(`Created user: ${luna.name} (${luna.email})`);
+  const aether = await prisma.user.create({
+    data: {
+      email: 'test2@example.com',
+      name: 'Aether Poet',
+      password: hashedPassword,
+      bio: 'Stargazing scribe. Exploring cosmic whispers and infinite universes.',
+      image: '⭐',
+    },
+  });
+
+  console.log(`Created users: ${luna.name} (${luna.email}), ${aether.name} (${aether.email})`);
 
   // Create posts
   const post1 = await prisma.post.create({
@@ -47,7 +57,16 @@ async function main() {
     },
   });
 
-  console.log(`Created posts: "${post1.title}", "${post2.title}"`);
+  const post3 = await prisma.post.create({
+    data: {
+      title: 'Cosmic Dust',
+      type: 'Thought',
+      content: 'We are all just cosmic dust floating in search of a soul to call home.',
+      authorId: aether.id,
+    },
+  });
+
+  console.log(`Created posts: "${post1.title}", "${post2.title}", "${post3.title}"`);
 
   // Create a comment
   await prisma.comment.create({
