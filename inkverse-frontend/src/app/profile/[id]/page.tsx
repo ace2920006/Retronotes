@@ -1,61 +1,129 @@
 import Link from "next/link";
+import { auth } from "@/auth";
+import { fetchAPI } from "@/lib/api";
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
-  console.log("[ProfilePage] Debugging - rendering profile for user ID:", params.id);
-  // In a real app, fetch user by params.id
-  
+  // Access Route params. In Next.js 15+, params is a promise, so we can await it
+  const { id } = await (params as any);
+
+  const session = await auth();
+  const token = (session as any)?.accessToken;
+
+  let profile: any = null;
+  let posts: any[] = [];
+  let fetchError = false;
+
+  try {
+    profile = await fetchAPI(`/users/${id}`);
+    posts = await fetchAPI(`/posts/user/${id}`, { token });
+  } catch (error) {
+    console.error("Failed to fetch profile/posts:", error);
+    fetchError = true;
+  }
+
+  if (fetchError || !profile) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center py-16 px-4 bg-gray-950 text-gray-200">
+        <div className="text-center max-w-md p-6 border border-gray-800 rounded-lg">
+          <p className="text-gray-400 mb-6 font-light">⚠️ Profile not found or database is offline.</p>
+          <Link href="/" className="px-6 py-2 bg-white text-gray-950 font-medium rounded-full text-sm">
+            Back to Galaxy
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const isOwnProfile = session?.user && (session.user as any).id === profile.id;
+
   return (
     <main className="flex min-h-screen flex-col items-center py-16 px-4 bg-gray-950 text-gray-200">
       <div className="w-full max-w-3xl">
         
         {/* Profile Header */}
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16 border-b border-gray-800 pb-12">
-          <div className="w-32 h-32 rounded-full bg-gray-800 flex items-center justify-center text-4xl border-2 border-gray-700">
-            🌙
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16 border-b border-gray-900 pb-12">
+          <div className="w-28 h-28 rounded-full bg-gray-900 border border-gray-850 flex items-center justify-center text-4xl shadow-inner">
+            {profile.image || "🌙"}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl font-serif font-bold text-gray-100 mb-2">Luna Writer</h1>
-            <p className="text-gray-400 mb-4 font-light max-w-lg">
-              Weaving dreams into words. Lover of haikus, rain, and midnight thoughts.
-            </p>
-            <div className="flex justify-center md:justify-start gap-6 text-sm text-gray-500 mb-6">
-              <span><strong className="text-gray-300">1.2K</strong> Followers</span>
-              <span><strong className="text-gray-300">45</strong> Published Works</span>
-              <span><strong className="text-gray-300">12h</strong> Read Time</span>
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
+              <h1 className="text-3xl font-serif font-bold text-gray-150">
+                {profile.name}
+              </h1>
+              {isOwnProfile && (
+                <span className="inline-block self-center px-3 py-0.5 bg-gray-900 border border-gray-800 rounded-full text-[10px] text-gray-400 tracking-wider uppercase font-semibold">
+                  You
+                </span>
+              )}
             </div>
-            <button className="px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-colors text-sm">
-              Follow
-            </button>
+            <p className="text-gray-450 mb-6 font-light max-w-lg leading-relaxed text-sm">
+              {profile.bio || "This writer has chosen to keep their thoughts inside their head for now."}
+            </p>
+            <div className="flex justify-center md:justify-start gap-6 text-xs text-gray-500 mb-6">
+              <span><strong className="text-gray-300">{posts.length}</strong> Published Works</span>
+              <span><strong className="text-gray-300">0</strong> Followers</span>
+            </div>
+            
+            {isOwnProfile ? (
+              <Link
+                href="/write"
+                className="inline-block px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-all text-xs shadow-md"
+              >
+                🖊️ Write new poem
+              </Link>
+            ) : (
+              <button className="px-6 py-2 bg-gray-900 hover:bg-gray-850 border border-gray-800 text-gray-300 hover:text-white font-medium rounded-full transition-all text-xs cursor-pointer">
+                Follow Writer
+              </button>
+            )}
           </div>
         </div>
 
         {/* User Posts */}
-        <h2 className="text-xl font-serif text-gray-100 mb-8 border-l-2 border-gray-600 pl-3">Recent Works</h2>
+        <h2 className="text-lg font-serif text-gray-100 mb-8 border-l border-gray-700 pl-3">
+          Published Works
+        </h2>
         
-        <div className="py-8 border-y border-gray-800">
-          <div className="flex items-center gap-2 mb-6 text-gray-400 text-sm font-medium">
-            <span>🌸</span>
-            <span>Haiku</span>
-          </div>
-          
-          <div className="font-serif text-xl leading-relaxed text-gray-100 mb-8 pl-4 border-l-2 border-gray-800">
-            <p>Silent winter night</p>
-            <p>A single star guides me home</p>
-            <p>Peace within my soul</p>
-          </div>
+        <div className="space-y-12">
+          {posts.length === 0 ? (
+            <div className="text-center py-16 border border-dashed border-gray-900 rounded-lg">
+              <p className="text-gray-500 text-sm font-light">No works published by this writer yet.</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <div key={post.id} className="py-8 border-b border-gray-900 last:border-b-0">
+                <div className="flex items-center gap-3 mb-6 text-gray-400 text-xs font-light">
+                  <span>🌸</span>
+                  <span>{post.type}</span>
+                  <span>•</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                </div>
+                
+                {post.title && (
+                  <h3 className="text-lg font-serif font-semibold text-gray-200 mb-3 pl-4 border-l border-gray-800">
+                    {post.title}
+                  </h3>
+                )}
 
-          <div className="flex items-center gap-6 text-gray-400 text-sm">
-            <button className="flex items-center gap-2 hover:text-red-400 transition-colors">
-              <span>❤️</span> 1.1K
-            </button>
-            <button className="flex items-center gap-2 hover:text-blue-400 transition-colors">
-              <span>💬</span> 89
-            </button>
-          </div>
+                <div className="font-serif text-base leading-relaxed text-gray-300 mb-6 pl-4 whitespace-pre-wrap">
+                  {post.content}
+                </div>
+
+                <div className="flex items-center gap-6 text-gray-400 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <span>❤️</span> {post.likesCount}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span>💬</span> {post.commentsCount}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        <div className="mt-12 text-center">
-          <Link href="/" className="text-gray-500 hover:text-gray-300 transition-colors">
+        <div className="mt-16 text-center">
+          <Link href="/" className="text-xs text-gray-550 hover:text-gray-300 transition-colors">
             ← Back to Galaxy
           </Link>
         </div>
