@@ -18,6 +18,36 @@ export class UsersService {
     });
   }
 
+  async getProfile(id: string, currentUserId?: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        followers: true,
+        following: true,
+      },
+    });
+
+    if (!user) return null;
+
+    const followersCount = user.followers.length;
+    const followingCount = user.following.length;
+    const isFollowing = currentUserId
+      ? user.followers.some((f) => f.followerId === currentUserId)
+      : false;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      bio: user.bio,
+      image: user.image,
+      createdAt: user.createdAt,
+      followersCount,
+      followingCount,
+      isFollowing,
+    };
+  }
+
   async create(data: { email: string; name?: string; password?: string }): Promise<User> {
     return this.prisma.user.create({
       data,

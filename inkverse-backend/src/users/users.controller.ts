@@ -1,29 +1,39 @@
 import { Controller, Get, Patch, Body, Param, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  private extractUserId(req: any): string | undefined {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const payload = this.jwtService.verify(token, {
+          secret: process.env.JWT_SECRET || 'secret_inkverse_2026',
+        });
+        return payload.sub;
+      } catch (e) {
+        // Token invalid/expired
+      }
+    }
+    return undefined;
+  }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOneById(id);
-    if (!user) {
+  async findOne(@Param('id') id: string, @Request() req: any) {
+    const currentUserId = this.extractUserId(req);
+    const profile = await this.usersService.getProfile(id, currentUserId);
+    if (!profile) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    
-    // Fetch user with posts, comments, likes to return detailed counts
-    // (PrismaService extends PrismaClient so we can query database directly from controller or add to service)
-    // To keep controller clean, let's return user and we can query counts in frontend or here
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      bio: user.bio,
-      image: user.image,
-      createdAt: user.createdAt,
-    };
+    return profile;
   }
 
   @UseGuards(JwtAuthGuard)

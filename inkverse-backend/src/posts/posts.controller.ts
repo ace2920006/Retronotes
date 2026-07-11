@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -27,9 +27,13 @@ export class PostsController {
   }
 
   @Get('feed')
-  async getFeed(@Request() req: any) {
+  async getFeed(
+    @Request() req: any,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
+  ) {
     const userId = this.extractUserId(req);
-    return this.postsService.findFeed(userId);
+    return this.postsService.findFeed(userId, type, search);
   }
 
   @Get('user/:userId')

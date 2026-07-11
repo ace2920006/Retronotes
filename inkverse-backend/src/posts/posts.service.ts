@@ -21,8 +21,27 @@ export class PostsService {
     });
   }
 
-  async findFeed(currentUserId?: string) {
+  async findFeed(currentUserId?: string, type?: string, search?: string) {
+    const where: any = {};
+
+    if (type && type !== 'All') {
+      where.type = type;
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { content: { contains: search } },
+        {
+          author: {
+            name: { contains: search },
+          },
+        },
+      ];
+    }
+
     const posts = await this.prisma.post.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         author: {
