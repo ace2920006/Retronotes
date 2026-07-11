@@ -1,7 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma';
 import * as bcrypt from 'bcrypt';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
-const prisma = new PrismaClient({});
+const adapter = new PrismaBetterSqlite3({ url: 'dev.db' });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('Seeding InkVerse database...');
