@@ -12,7 +12,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        captchaToken: { label: "Captcha Token", type: "text" }
       },
       async authorize(credentials) {
         try {
@@ -24,6 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             body: JSON.stringify({
               email: credentials?.email,
               password: credentials?.password,
+              captchaToken: credentials?.captchaToken,
             }),
           });
 

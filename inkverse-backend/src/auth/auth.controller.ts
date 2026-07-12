@@ -7,6 +7,17 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: any) {
+    if (process.env.RECAPTCHA_SECRET_KEY && !body.captchaToken) {
+      throw new UnauthorizedException('CAPTCHA token is required');
+    }
+    
+    if (body.captchaToken) {
+      const isCaptchaValid = await this.authService.verifyCaptcha(body.captchaToken);
+      if (!isCaptchaValid) {
+        throw new UnauthorizedException('CAPTCHA verification failed');
+      }
+    }
+
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
