@@ -1,8 +1,13 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
       name: "Credentials",
       credentials: {
@@ -43,8 +48,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account }) {
+      if (account?.provider === "google" && user) {
+        try {
+          const res = await fetch("http://localhost:3000/auth/google", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            }),
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            token.accessToken = data.accessToken;
+            token.id = data.user.id;
+          }
+        } catch (error) {
+          console.error("Error authenticating google user with backend:", error);
+        }
+      } else if (user) {
         token.accessToken = (user as any).accessToken;
         token.id = user.id;
       }

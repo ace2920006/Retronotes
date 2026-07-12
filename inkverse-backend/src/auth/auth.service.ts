@@ -34,6 +34,31 @@ export class AuthService {
     };
   }
 
+  async googleLogin(email: string, name: string, image?: string) {
+    let user = await this.usersService.findOneByEmail(email);
+
+    if (!user) {
+      user = await this.usersService.create({
+        email,
+        name,
+        // Optional fields from google can be updated here if schema supports it, e.g. image
+      });
+      if (image) {
+        user = await this.usersService.update(user.id, { image });
+      }
+    }
+
+    const payload = { email: user.email, sub: user.id };
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
+
   async register(email: string, name: string, pass: string) {
     const existing = await this.usersService.findOneByEmail(email);
     if (existing) {

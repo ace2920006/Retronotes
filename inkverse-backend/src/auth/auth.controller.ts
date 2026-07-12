@@ -14,6 +14,14 @@ export class AuthController {
     return this.authService.login(user);
   }
 
+  @Post('google')
+  async googleAuth(@Body() body: any) {
+    if (!body.email || !body.name) {
+      throw new UnauthorizedException('Missing required fields from Google profile');
+    }
+    return this.authService.googleLogin(body.email, body.name, body.image);
+  }
+
   @Post('register')
   async register(@Body() body: any) {
     if (!body.email || !body.password || !body.name) {
