@@ -88,12 +88,57 @@ export default async function PostPage({ params }: PostPageProps) {
     }
   }
 
+  // Server Action to edit comment
+  async function editComment(commentId: string, content: string) {
+    "use server";
+    const session = await auth();
+    if (!session) return null;
+    const token = (session as any).accessToken;
+
+    try {
+      const response = await fetchAPI(`/comments/${commentId}`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ content }),
+      });
+      revalidatePath(`/post/${id}`);
+      revalidatePath("/");
+      return response;
+    } catch (error) {
+      console.error("Server Action comment editing failed:", error);
+      throw error;
+    }
+  }
+
+  // Server Action to delete comment
+  async function deleteComment(commentId: string) {
+    "use server";
+    const session = await auth();
+    if (!session) return null;
+    const token = (session as any).accessToken;
+
+    try {
+      const response = await fetchAPI(`/comments/${commentId}`, {
+        method: "DELETE",
+        token,
+      });
+      revalidatePath(`/post/${id}`);
+      revalidatePath("/");
+      return response;
+    } catch (error) {
+      console.error("Server Action comment deletion failed:", error);
+      throw error;
+    }
+  }
+
   return (
     <ReaderWrapper
       post={post}
       session={session}
       likeAction={toggleLike}
       commentAction={addComment}
+      editCommentAction={editComment}
+      deleteCommentAction={deleteComment}
     />
   );
 }

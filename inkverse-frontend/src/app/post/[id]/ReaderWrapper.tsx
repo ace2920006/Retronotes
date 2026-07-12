@@ -9,6 +9,8 @@ interface ReaderWrapperProps {
   session: any;
   likeAction: () => Promise<void>;
   commentAction: (content: string) => Promise<any>;
+  editCommentAction: (commentId: string, content: string) => Promise<any>;
+  deleteCommentAction: (commentId: string) => Promise<any>;
 }
 
 export default function ReaderWrapper({
@@ -16,6 +18,8 @@ export default function ReaderWrapper({
   session,
   likeAction,
   commentAction,
+  editCommentAction,
+  deleteCommentAction,
 }: ReaderWrapperProps) {
   const router = useRouter();
   const [theme, setTheme] = useState<"midnight" | "paper" | "obsidian">("midnight");
@@ -28,6 +32,8 @@ export default function ReaderWrapper({
   const [isLiking, setIsLiking] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [hasLiked, setHasLiked] = useState(post.hasLiked);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   // Calculate estimated reading time
   const wordCount = post.content.split(/\s+/).filter(Boolean).length;
@@ -89,6 +95,40 @@ export default function ReaderWrapper({
         }
       } catch (error) {
         console.error("Failed to add comment:", error);
+      }
+    });
+  };
+
+  const handleEditCommentSubmit = async (commentId: string) => {
+    if (!editingText.trim()) return;
+
+    startTransition(async () => {
+      try {
+        const updated = await editCommentAction(commentId, editingText);
+        if (updated) {
+          setComments((prev: any[]) =>
+            prev.map((c) =>
+              c.id === commentId ? { ...c, content: updated.content, updatedAt: updated.updatedAt } : c
+            )
+          );
+          setEditingCommentId(null);
+          setEditingText("");
+        }
+      } catch (error) {
+        console.error("Failed to edit comment:", error);
+      }
+    });
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    startTransition(async () => {
+      try {
+        await deleteCommentAction(commentId);
+        setComments((prev: any[]) => prev.filter((c) => c.id !== commentId));
+      } catch (error) {
+        console.error("Failed to delete comment:", error);
       }
     });
   };
@@ -351,41 +391,130 @@ export default function ReaderWrapper({
                   No reflections shared yet. Be the first to share your thoughts.
                 </p>
               ) : (
-                comments.map((comment: any) => (
-                  <div
-                    key={comment.id}
-                    className={`p-5 rounded-xl border transition-all ${
-                      theme === "paper" ? "bg-white/40 border-amber-900/10" : "bg-gray-900/20 border-gray-900"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center mb-3">
-                      <Link href={`/profile/${comment.authorId}`} className="flex items-center gap-2 group">
-                        <div className="w-6 h-6 rounded-full bg-gray-905 border border-gray-800 flex items-center justify-center text-xs">
-                          {comment.author.image || "✒️"}
+                comments.map((comment: any) => {
+                  const isCommentAuthor = session?.user && (session.user as any).id === comment.authorId;
+                  const isPostAuthor = session?.user && (session.user as any).id === post.authorId;
+                  const canDelete = isCommentAuthor || isPostAuthor;
+                  const canEdit = isCommentAuthor;
+
+                  return (
+                    <div
+                      key={comment.id}
+                      className={`p-5 rounded-xl border transition-all ${
+                        theme === "paper" ? "bg-white/40 border-amber-900/10" : "bg-gray-900/20 border-gray-900"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <Link href={`/profile/${comment.authorId}`} className="flex items-center gap-2 group">
+                          <div className="w-6 h-6 rounded-full bg-gray-905 border border-gray-800 flex items-center justify-center text-xs">
+                            {comment.author.image || "✒️"}
+                          </div>
+                          <span className={`text-xs font-semibold ${
+                            theme === "paper" ? "text-amber-950 group-hover:text-amber-800" : "text-gray-300 group-hover:text-white"
+                          }`}>
+                            {comment.author.name}
+                          </span>
+                        </Link>
+                        
+                        <div className="flex items-center gap-2">
+                          {comment.updatedAt !== comment.createdAt && (
+                            <span className={`text-[9px] font-light italic ${
+                              theme === "paper" ? "text-amber-800/60" : "text-gray-500"
+                            }`}>
+                              (edited)
+                            </span>
+                          )}
+                          <span className={`text-[10px] font-light ${
+                            theme === "paper" ? "text-amber-850/80" : "text-gray-500"
+                          }`}>
+                            {new Date(comment.createdAt).toLocaleDateString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
                         </div>
-                        <span className={`text-xs font-semibold ${
-                          theme === "paper" ? "text-amber-950 group-hover:text-amber-800" : "text-gray-300 group-hover:text-white"
-                        }`}>
-                          {comment.author.name}
-                        </span>
-                      </Link>
-                      <span className={`text-[10px] font-light ${
-                        theme === "paper" ? "text-amber-850/80" : "text-gray-500"
-                      }`}>
-                        {new Date(comment.createdAt).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
+                      </div>
+
+                      {editingCommentId === comment.id ? (
+                        <div className="space-y-3 mt-2">
+                          <textarea
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            rows={3}
+                            className={`w-full p-3 rounded-lg border text-sm focus:outline-none focus:ring-1 transition-all ${
+                              theme === "paper"
+                                ? "bg-white/90 border-amber-900/20 text-[#2d2218] focus:ring-amber-800"
+                                : "bg-gray-950 border-gray-850 text-gray-200 focus:ring-gray-700"
+                            }`}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditCommentSubmit(comment.id)}
+                              disabled={isPending}
+                              className={`px-4 py-1.5 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
+                                theme === "paper"
+                                  ? "bg-amber-950 text-amber-50 hover:bg-amber-900"
+                                  : "bg-white text-gray-950 hover:bg-gray-200"
+                              }`}
+                            >
+                              {isPending ? "Saving..." : "Save"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingCommentId(null);
+                                setEditingText("");
+                              }}
+                              className={`px-4 py-1.5 rounded-full text-[11px] font-medium border transition-all cursor-pointer ${
+                                theme === "paper"
+                                  ? "border-amber-900/20 text-amber-900 hover:bg-amber-900/5"
+                                  : "border-gray-800 text-gray-400 hover:text-white hover:bg-gray-900"
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className={`text-sm leading-relaxed ${
+                            theme === "paper" ? "text-[#3c3024] font-light" : "text-gray-300 font-light"
+                          }`}>
+                            {comment.content}
+                          </p>
+
+                          {(canEdit || canDelete) && (
+                            <div className="flex justify-end gap-3 mt-3 pt-2.5 border-t border-dashed border-gray-900/10 dark:border-gray-900/40">
+                              {canEdit && (
+                                <button
+                                  onClick={() => {
+                                    setEditingCommentId(comment.id);
+                                    setEditingText(comment.content);
+                                  }}
+                                  className={`text-[10px] font-medium transition-colors cursor-pointer hover:underline ${
+                                    theme === "paper" ? "text-amber-800 hover:text-amber-950" : "text-gray-500 hover:text-gray-300"
+                                  }`}
+                                >
+                                  Edit
+                                </button>
+                              )}
+                              {canDelete && (
+                                <button
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className={`text-[10px] font-medium transition-colors cursor-pointer hover:underline ${
+                                    theme === "paper" ? "text-red-800 hover:text-red-950" : "text-gray-500 hover:text-red-400"
+                                  }`}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
-                    <p className={`text-sm leading-relaxed ${
-                      theme === "paper" ? "text-[#3c3024] font-light" : "text-gray-300 font-light"
-                    }`}>
-                      {comment.content}
-                    </p>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </section>
