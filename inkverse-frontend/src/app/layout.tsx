@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Merriweather } from "next/font/google";
 import "./globals.css";
+import Chatbox from "@/components/Chatbox";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${merriweather.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-gray-950 text-gray-200 font-sans">{children}</body>
+      <body className="min-h-full flex flex-col bg-gray-950 text-gray-200 font-sans">
+        {children}
+        <Chatbox />
+      </body>
     </html>
   );
 }

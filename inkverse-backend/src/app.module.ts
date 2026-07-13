@@ -8,9 +8,10 @@ import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
 import { LikesModule } from './likes/likes.module';
 import { FollowsModule } from './follows/follows.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, PostsModule, CommentsModule, LikesModule, FollowsModule],
+  imports: [AuthModule, UsersModule, PostsModule, CommentsModule, LikesModule, FollowsModule, AiModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
