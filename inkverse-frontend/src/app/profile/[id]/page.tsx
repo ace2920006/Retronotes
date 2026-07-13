@@ -2,6 +2,8 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchAPI } from "@/lib/api";
 import { revalidatePath } from "next/cache";
+import UserAvatar from "@/components/UserAvatar";
+import EditProfileControl from "./EditProfileControl";
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
   // Access Route params. In Next.js 15+, params is a promise, so we can await it
@@ -67,9 +69,12 @@ export default async function ProfilePage({ params }: { params: { id: string } }
         
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16 border-b border-gray-900 pb-12">
-          <div className="w-28 h-28 rounded-full bg-gray-900 border border-gray-850 flex items-center justify-center text-4xl shadow-inner">
-            {profile.image || "🌙"}
-          </div>
+          <UserAvatar 
+            image={profile.image} 
+            name={profile.name} 
+            className="w-28 h-28 text-4xl" 
+            fallbackEmoji="🌙" 
+          />
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-2">
               <h1 className="text-3xl font-serif font-bold text-gray-150">
@@ -91,12 +96,15 @@ export default async function ProfilePage({ params }: { params: { id: string } }
             </div>
             
             {isOwnProfile ? (
-              <Link
-                href="/write"
-                className="inline-block px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-all text-xs shadow-md"
-              >
-                🖊️ Write new poem
-              </Link>
+              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                <Link
+                  href="/write"
+                  className="inline-block px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-all text-xs shadow-md font-semibold"
+                >
+                  🖊️ Write new poem
+                </Link>
+                <EditProfileControl profile={profile} token={token || ""} />
+              </div>
             ) : (
               <form action={toggleFollow}>
                 <button

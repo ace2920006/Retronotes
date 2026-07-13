@@ -1,9 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Increase payload limits for base64 image uploads
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ limit: '10mb', extended: true }));
   
   // Enable CORS for frontend (Next.js dev server on port 3001)
   app.enableCors({

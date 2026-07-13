@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import UserAvatar from "@/components/UserAvatar";
 
 interface ReaderWrapperProps {
   post: any;
@@ -265,9 +266,11 @@ export default function ReaderWrapper({
                 href={`/profile/${post.authorId}`}
                 className="flex items-center gap-3 group"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-base group-hover:border-gray-700 transition-colors">
-                  {post.author.image || "✒️"}
-                </div>
+                <UserAvatar
+                  image={post.author.image}
+                  name={post.author.name}
+                  className="w-10 h-10 text-base group-hover:border-gray-700 transition-colors"
+                />
                 <div>
                   <h4 className={`text-sm font-semibold transition-colors ${
                     theme === "paper" ? "text-amber-950 group-hover:text-amber-800" : "text-gray-200 group-hover:text-white"
@@ -406,9 +409,11 @@ export default function ReaderWrapper({
                     >
                       <div className="flex justify-between items-center mb-3">
                         <Link href={`/profile/${comment.authorId}`} className="flex items-center gap-2 group">
-                          <div className="w-6 h-6 rounded-full bg-gray-905 border border-gray-800 flex items-center justify-center text-xs">
-                            {comment.author.image || "✒️"}
-                          </div>
+                          <UserAvatar
+                            image={comment.author.image}
+                            name={comment.author.name}
+                            className="w-6 h-6 text-[10px]"
+                          />
                           <span className={`text-xs font-semibold ${
                             theme === "paper" ? "text-amber-950 group-hover:text-amber-800" : "text-gray-300 group-hover:text-white"
                           }`}>

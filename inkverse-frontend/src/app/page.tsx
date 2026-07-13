@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchAPI } from "@/lib/api";
+import UserAvatar from "@/components/UserAvatar";
 
 export default async function Home({
   searchParams,
@@ -167,9 +168,11 @@ export default async function Home({
                   href={`/profile/${post.authorId}`}
                   className="flex items-center gap-3 group"
                 >
-                  <div className="w-9 h-9 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-sm group-hover:border-gray-700 transition-colors">
-                    ✒️
-                  </div>
+                  <UserAvatar
+                    image={post.author.image}
+                    name={post.author.name}
+                    className="w-9 h-9 text-sm group-hover:border-gray-700 transition-colors"
+                  />
                   <div>
                     <h3 className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
                       {post.author.name}
