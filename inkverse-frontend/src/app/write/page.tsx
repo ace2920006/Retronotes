@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchAPI } from "@/lib/api";
+import PublishButton from "./PublishButton";
 
 export default async function WritePage() {
   const session = await auth();
@@ -100,12 +101,7 @@ export default async function WritePage() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-white text-black font-semibold rounded-lg hover:bg-gray-250 transition-colors text-sm shadow-md cursor-pointer"
-          >
-            Publish to Verse
-          </button>
+          <PublishButton />
         </form>
       </div>
     </main>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchAPI } from "@/lib/api";
 import UserAvatar from "@/components/UserAvatar";
+import LikeButton from "@/components/LikeButton";
 
 export default async function Home({
   searchParams,
@@ -202,40 +203,13 @@ export default async function Home({
               </div>
 
               <div className="flex items-center gap-6 text-gray-400 text-sm">
-                <form
-                  action={async () => {
-                    "use server";
-                    if (!session) return;
-                    // Action to handle like/unlike toggle
-                    const token = (session as any).accessToken;
-                    try {
-                      if (post.hasLiked) {
-                        await fetchAPI(`/likes/${post.id}`, {
-                          method: "DELETE",
-                          token,
-                        });
-                      } else {
-                        await fetchAPI(`/likes/${post.id}`, {
-                          method: "POST",
-                          token,
-                        });
-                      }
-                    } catch (error) {
-                      console.error("Like toggle failed:", error);
-                    }
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className={`flex items-center gap-2 transition-colors hover:text-red-400 ${
-                      post.hasLiked ? "text-red-500" : ""
-                    }`}
-                    disabled={!session}
-                    title={session ? "Like post" : "Log in to like"}
-                  >
-                    <span>{post.hasLiked ? "❤️" : "🤍"}</span> {post.likesCount}
-                  </button>
-                </form>
+                <LikeButton
+                  postId={post.id}
+                  initialLikesCount={post.likesCount}
+                  initialHasLiked={post.hasLiked}
+                  token={token || ""}
+                  isLoggedIn={!!session}
+                />
 
                 <Link
                   href={`/post/${post.id}`}

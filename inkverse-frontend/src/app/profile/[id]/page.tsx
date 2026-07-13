@@ -4,6 +4,7 @@ import { fetchAPI } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfileControl from "./EditProfileControl";
+import FollowButton from "@/components/FollowButton";
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
   // Access Route params. In Next.js 15+, params is a promise, so we can await it
@@ -106,18 +107,12 @@ export default async function ProfilePage({ params }: { params: { id: string } }
                 <EditProfileControl profile={profile} token={token || ""} />
               </div>
             ) : (
-              <form action={toggleFollow}>
-                <button
-                  type="submit"
-                  className={`px-6 py-2 border rounded-full transition-all text-xs cursor-pointer font-semibold ${
-                    profile.isFollowing
-                      ? "bg-gray-900 border-gray-800 text-gray-400 hover:text-red-400 hover:border-red-900/40 hover:bg-red-950/20"
-                      : "bg-white border-transparent text-gray-950 hover:bg-gray-200"
-                  }`}
-                >
-                  {profile.isFollowing ? "Unfollow" : "Follow Writer"}
-                </button>
-              </form>
+              <FollowButton
+                targetUserId={id}
+                initialIsFollowing={profile.isFollowing}
+                token={token || ""}
+                isLoggedIn={!!session}
+              />
             )}
           </div>
         </div>
