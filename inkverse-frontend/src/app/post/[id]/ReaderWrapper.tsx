@@ -23,7 +23,7 @@ export default function ReaderWrapper({
   deleteCommentAction,
 }: ReaderWrapperProps) {
   const router = useRouter();
-  const [theme, setTheme] = useState<"midnight" | "paper" | "obsidian">("midnight");
+  const [theme, setTheme] = useState<"midnight" | "paper" | "obsidian" | "retro">("midnight");
   const [fontSize, setFontSize] = useState<"sm" | "md" | "lg">("md");
   const [fontFamily, setFontFamily] = useState<"serif" | "sans">("serif");
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -139,6 +139,7 @@ export default function ReaderWrapper({
     midnight: "bg-gray-950 text-gray-200 border-gray-900",
     paper: "bg-[#fbf6ec] text-[#2d2218] border-[#eaddca]",
     obsidian: "bg-black text-gray-300 border-gray-950",
+    retro: "bg-[#25221b] text-[#ebd9b4] border-[#3e382d] font-mono",
   };
 
   const fontClasses = {
@@ -153,28 +154,42 @@ export default function ReaderWrapper({
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${theme === "paper" ? "bg-[#f4ebe1]" : theme === "obsidian" ? "bg-black" : "bg-gray-950"}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${theme === "paper" ? "bg-[#f4ebe1]" : theme === "obsidian" ? "bg-black" : theme === "retro" ? "bg-[#181611]" : "bg-gray-950"}`}>
       {/* Scroll Progress Bar */}
       <div
-        className="fixed top-0 left-0 h-1 bg-white z-50 transition-all duration-75"
+        className={`fixed top-0 left-0 h-1 z-50 transition-all duration-75 ${
+          theme === "retro" ? "bg-[#ebd9b4]" : "bg-white"
+        }`}
         style={{ width: `${scrollProgress}%` }}
       />
 
       <main className="flex flex-col items-center py-16 px-4">
         <div className="w-full max-w-2xl">
           {/* Back & Reader Controls */}
-          <div className="flex flex-wrap gap-4 items-center justify-between mb-8 border-b border-gray-900/60 pb-6">
+          <div className={`flex flex-wrap gap-4 items-center justify-between mb-8 border-b pb-6 ${
+            theme === "paper" ? "border-amber-900/10" : theme === "retro" ? "border-[#3e382d]" : "border-gray-900/60"
+          }`}>
             <Link
               href="/"
               className={`text-xs flex items-center gap-1.5 transition-colors ${
-                theme === "paper" ? "text-amber-800 hover:text-amber-950" : "text-gray-400 hover:text-white"
+                theme === "paper" 
+                  ? "text-amber-800 hover:text-amber-950" 
+                  : theme === "retro"
+                  ? "text-[#a39474] hover:text-[#ebd9b4]"
+                  : "text-gray-400 hover:text-white"
               }`}
             >
               <span>←</span> Back to Verse
             </Link>
 
             {/* Controls Panel */}
-            <div className="flex items-center gap-4 bg-gray-900/40 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-800/40 text-xs">
+            <div className={`flex items-center gap-4 backdrop-blur-sm px-4 py-2 rounded-full border text-xs ${
+              theme === "paper" 
+                ? "bg-amber-100/30 border-amber-900/10" 
+                : theme === "retro"
+                ? "bg-[#353026]/40 border-[#524a3a]"
+                : "bg-gray-900/40 border-gray-800/40"
+            }`}>
               {/* Theme toggles */}
               <div className="flex gap-2 items-center">
                 <button
@@ -198,16 +213,27 @@ export default function ReaderWrapper({
                   }`}
                   title="Obsidian theme"
                 />
+                <button
+                  onClick={() => setTheme("retro")}
+                  className={`w-4 h-4 rounded-full bg-[#353026] border flex items-center justify-center ${
+                    theme === "retro" ? "border-[#968361]" : "border-[#524a3a]"
+                  }`}
+                  title="Retro Type theme"
+                >
+                  <span className="text-[8px] text-[#ebd9b4] leading-none">📟</span>
+                </button>
               </div>
 
-              <span className="text-gray-700">|</span>
+              <span className={theme === "paper" ? "text-amber-900/20" : theme === "retro" ? "text-[#524a3a]" : "text-gray-700"}>|</span>
 
               {/* Font Size Selector */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setFontSize("sm")}
                   className={`px-1.5 py-0.5 rounded ${
-                    fontSize === "sm" ? "bg-white text-black font-semibold" : "text-gray-400 hover:text-white"
+                    fontSize === "sm" 
+                      ? (theme === "paper" ? "bg-amber-950 text-amber-50 font-semibold" : theme === "retro" ? "bg-[#968361] text-[#181611] font-semibold" : "bg-white text-black font-semibold") 
+                      : (theme === "paper" ? "text-amber-800 hover:text-amber-950" : theme === "retro" ? "text-[#a39474] hover:text-[#ebd9b4]" : "text-gray-400 hover:text-white")
                   }`}
                 >
                   A
@@ -215,7 +241,9 @@ export default function ReaderWrapper({
                 <button
                   onClick={() => setFontSize("md")}
                   className={`px-1.5 py-0.5 rounded text-sm ${
-                    fontSize === "md" ? "bg-white text-black font-semibold" : "text-gray-400 hover:text-white"
+                    fontSize === "md" 
+                      ? (theme === "paper" ? "bg-amber-950 text-amber-50 font-semibold" : theme === "retro" ? "bg-[#968361] text-[#181611] font-semibold" : "bg-white text-black font-semibold") 
+                      : (theme === "paper" ? "text-amber-800 hover:text-amber-950" : theme === "retro" ? "text-[#a39474] hover:text-[#ebd9b4]" : "text-gray-400 hover:text-white")
                   }`}
                 >
                   A
@@ -223,21 +251,25 @@ export default function ReaderWrapper({
                 <button
                   onClick={() => setFontSize("lg")}
                   className={`px-1.5 py-0.5 rounded text-base ${
-                    fontSize === "lg" ? "bg-white text-black font-semibold" : "text-gray-400 hover:text-white"
+                    fontSize === "lg" 
+                      ? (theme === "paper" ? "bg-amber-950 text-amber-50 font-semibold" : theme === "retro" ? "bg-[#968361] text-[#181611] font-semibold" : "bg-white text-black font-semibold") 
+                      : (theme === "paper" ? "text-amber-800 hover:text-amber-950" : theme === "retro" ? "text-[#a39474] hover:text-[#ebd9b4]" : "text-gray-400 hover:text-white")
                   }`}
                 >
                   A+
                 </button>
               </div>
 
-              <span className="text-gray-700">|</span>
+              <span className={theme === "paper" ? "text-amber-900/20" : theme === "retro" ? "text-[#524a3a]" : "text-gray-700"}>|</span>
 
               {/* Font Style Selector */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setFontFamily("serif")}
                   className={`px-2 py-0.5 rounded font-serif ${
-                    fontFamily === "serif" ? "bg-white text-black" : "text-gray-400 hover:text-white"
+                    fontFamily === "serif" 
+                      ? (theme === "paper" ? "bg-amber-950 text-amber-50" : theme === "retro" ? "bg-[#968361] text-[#181611]" : "bg-white text-black") 
+                      : (theme === "paper" ? "text-amber-800 hover:text-amber-950" : theme === "retro" ? "text-[#a39474] hover:text-[#ebd9b4]" : "text-gray-400 hover:text-white")
                   }`}
                 >
                   Serif
@@ -245,7 +277,9 @@ export default function ReaderWrapper({
                 <button
                   onClick={() => setFontFamily("sans")}
                   className={`px-2 py-0.5 rounded font-sans ${
-                    fontFamily === "sans" ? "bg-white text-black" : "text-gray-400 hover:text-white"
+                    fontFamily === "sans" 
+                      ? (theme === "paper" ? "bg-amber-950 text-amber-50" : theme === "retro" ? "bg-[#968361] text-[#181611]" : "bg-white text-black") 
+                      : (theme === "paper" ? "text-amber-800 hover:text-amber-950" : theme === "retro" ? "text-[#a39474] hover:text-[#ebd9b4]" : "text-gray-400 hover:text-white")
                   }`}
                 >
                   Sans
@@ -273,11 +307,21 @@ export default function ReaderWrapper({
                 />
                 <div>
                   <h4 className={`text-sm font-semibold transition-colors ${
-                    theme === "paper" ? "text-amber-950 group-hover:text-amber-800" : "text-gray-200 group-hover:text-white"
+                    theme === "paper" 
+                      ? "text-amber-950 group-hover:text-amber-800" 
+                      : theme === "retro"
+                      ? "text-[#ebd9b4] group-hover:text-[#fff2d4]"
+                      : "text-gray-200 group-hover:text-white"
                   }`}>
                     {post.author.name}
                   </h4>
-                  <p className={`text-xs ${theme === "paper" ? "text-amber-800/80" : "text-gray-500"}`}>
+                  <p className={`text-xs ${
+                    theme === "paper" 
+                      ? "text-amber-800/80" 
+                      : theme === "retro"
+                      ? "text-[#a8997a]"
+                      : "text-gray-505"
+                  }`}>
                     {new Date(post.createdAt).toLocaleDateString(undefined, {
                       month: "long",
                       day: "numeric",
@@ -289,12 +333,20 @@ export default function ReaderWrapper({
 
               <div className="flex items-center gap-2">
                 <span className={`px-3 py-1 text-xs rounded-full border ${
-                  theme === "paper" ? "bg-amber-100/50 border-amber-900/20 text-amber-900" : "bg-gray-900/50 border-gray-800 text-gray-400"
+                  theme === "paper" 
+                    ? "bg-amber-100/50 border-amber-900/20 text-amber-900" 
+                    : theme === "retro"
+                    ? "bg-[#353026]/80 border-[#524a3a] text-[#ebd9b4]"
+                    : "bg-gray-900/50 border-gray-800 text-gray-400"
                 }`}>
                   {post.type}
                 </span>
                 <span className={`px-3 py-1 text-xs rounded-full border ${
-                  theme === "paper" ? "bg-amber-100/50 border-amber-900/20 text-amber-900" : "bg-gray-900/50 border-gray-800 text-gray-400"
+                  theme === "paper" 
+                    ? "bg-amber-100/50 border-amber-900/20 text-amber-900" 
+                    : theme === "retro"
+                    ? "bg-[#353026]/80 border-[#524a3a] text-[#ebd9b4]"
+                    : "bg-gray-900/50 border-gray-800 text-gray-400"
                 }`} title="Estimated reading time">
                   ⏱️ {readingTime} min read
                 </span>
@@ -303,7 +355,9 @@ export default function ReaderWrapper({
 
             {/* Post Title */}
             {post.title && (
-              <h1 className="text-3xl md:text-4xl font-serif font-bold mb-8 pl-4 border-l-2 border-gray-700 leading-tight">
+              <h1 className={`text-3xl md:text-4xl font-serif font-bold mb-8 pl-4 border-l-2 leading-tight ${
+                theme === "paper" ? "border-amber-900 text-[#2d2218]" : theme === "retro" ? "border-[#968361] text-[#ebd9b4]" : "border-gray-700 text-gray-100"
+              }`}>
                 {post.title}
               </h1>
             )}
@@ -314,19 +368,29 @@ export default function ReaderWrapper({
             </div>
 
             {/* Post Actions */}
-            <div className="flex items-center gap-6 pt-6 border-t border-gray-800/40 text-sm">
+            <div className={`flex items-center gap-6 pt-6 border-t text-sm ${
+              theme === "paper" ? "border-amber-900/10" : theme === "retro" ? "border-[#3e382d]" : "border-gray-800/40"
+            }`}>
               <button
                 onClick={handleLike}
                 disabled={isLiking}
-                className={`flex items-center gap-2 transition-colors py-1.5 px-3 rounded-full hover:bg-gray-900/20 ${
-                  hasLiked ? "text-red-500" : "text-gray-400 hover:text-red-400"
+                className={`flex items-center gap-2 transition-colors py-1.5 px-3 rounded-full ${
+                  hasLiked 
+                    ? "text-red-500 bg-red-500/10" 
+                    : theme === "paper"
+                    ? "text-amber-800 hover:text-red-600 hover:bg-amber-100/50"
+                    : theme === "retro"
+                    ? "text-[#a39474] hover:text-red-400 hover:bg-[#353026]/40"
+                    : "text-gray-400 hover:text-red-400 hover:bg-gray-900/20"
                 }`}
                 title={session ? "Like post" : "Log in to like"}
               >
                 <span>{hasLiked ? "❤️" : "🤍"}</span> {likesCount}
               </button>
 
-              <span className="text-gray-400 flex items-center gap-2">
+              <span className={`flex items-center gap-2 ${
+                theme === "paper" ? "text-amber-800" : theme === "retro" ? "text-[#a39474]" : "text-gray-400"
+              }`}>
                 <span>💬</span> {comments.length}
               </span>
             </div>
@@ -335,7 +399,11 @@ export default function ReaderWrapper({
           {/* Comment Section */}
           <section className="mt-16">
             <h3 className={`text-xl font-serif font-semibold mb-6 border-l-2 pl-3 ${
-              theme === "paper" ? "border-amber-900 text-amber-950" : "border-white text-gray-100"
+              theme === "paper" 
+                ? "border-amber-900 text-amber-950" 
+                : theme === "retro"
+                ? "border-[#968361] text-[#ebd9b4]"
+                : "border-white text-gray-100"
             }`}>
               Thoughts ({comments.length})
             </h3>
@@ -352,6 +420,8 @@ export default function ReaderWrapper({
                   className={`w-full p-4 rounded-xl border focus:outline-none focus:ring-1 transition-all ${
                     theme === "paper"
                       ? "bg-white/80 border-amber-900/25 text-[#2d2218] focus:ring-amber-800"
+                      : theme === "retro"
+                      ? "bg-[#1f1c16]/80 border-[#3e382d] text-[#ebd9b4] focus:ring-[#968361]"
                       : "bg-gray-900/80 border-gray-800 text-gray-200 focus:ring-gray-700"
                   }`}
                 />
@@ -361,6 +431,8 @@ export default function ReaderWrapper({
                   className={`px-6 py-2.5 rounded-full text-xs font-semibold shadow-md transition-all cursor-pointer ${
                     theme === "paper"
                       ? "bg-amber-950 hover:bg-amber-900 text-amber-50"
+                      : theme === "retro"
+                      ? "bg-[#968361] hover:bg-[#b09b77] text-[#181611]"
                       : "bg-white hover:bg-gray-200 text-gray-950"
                   }`}
                 >
@@ -369,9 +441,19 @@ export default function ReaderWrapper({
               </form>
             ) : (
               <div className={`p-6 rounded-xl border text-center mb-10 ${
-                theme === "paper" ? "bg-amber-50/50 border-amber-900/20" : "bg-gray-900/30 border-gray-900"
+                theme === "paper" 
+                  ? "bg-amber-50/50 border-amber-900/20" 
+                  : theme === "retro"
+                  ? "bg-[#25221b]/40 border-[#3e382d]"
+                  : "bg-gray-900/30 border-gray-900"
               }`}>
-                <p className={`text-sm mb-4 ${theme === "paper" ? "text-amber-800" : "text-gray-450"}`}>
+                <p className={`text-sm mb-4 ${
+                  theme === "paper" 
+                    ? "text-amber-800" 
+                    : theme === "retro"
+                    ? "text-[#a8997a]"
+                    : "text-gray-450"
+                }`}>
                   Do you hear the whispers? Join the Verse to leave a trace.
                 </p>
                 <Link
@@ -379,6 +461,8 @@ export default function ReaderWrapper({
                   className={`inline-block px-6 py-2 rounded-full text-xs font-semibold transition-all ${
                     theme === "paper"
                       ? "bg-amber-950 text-amber-50 hover:bg-amber-900"
+                      : theme === "retro"
+                      ? "bg-[#968361] text-[#181611] hover:bg-[#b09b77]"
                       : "bg-white text-gray-950 hover:bg-gray-200"
                   }`}
                 >
@@ -390,7 +474,13 @@ export default function ReaderWrapper({
             {/* Comment List */}
             <div className="space-y-4">
               {comments.length === 0 ? (
-                <p className={`text-sm italic font-light ${theme === "paper" ? "text-amber-800/80" : "text-gray-500"}`}>
+                <p className={`text-sm italic font-light ${
+                  theme === "paper" 
+                    ? "text-amber-800/80" 
+                    : theme === "retro"
+                    ? "text-[#a8997a]"
+                    : "text-gray-505"
+                }`}>
                   No reflections shared yet. Be the first to share your thoughts.
                 </p>
               ) : (
@@ -404,7 +494,11 @@ export default function ReaderWrapper({
                     <div
                       key={comment.id}
                       className={`p-5 rounded-xl border transition-all ${
-                        theme === "paper" ? "bg-white/40 border-amber-900/10" : "bg-gray-900/20 border-gray-900"
+                        theme === "paper" 
+                          ? "bg-white/40 border-amber-900/10" 
+                          : theme === "retro"
+                          ? "bg-[#25221b]/20 border-[#3e382d]"
+                          : "bg-gray-900/20 border-gray-900"
                       }`}
                     >
                       <div className="flex justify-between items-center mb-3">
@@ -415,7 +509,11 @@ export default function ReaderWrapper({
                             className="w-6 h-6 text-[10px]"
                           />
                           <span className={`text-xs font-semibold ${
-                            theme === "paper" ? "text-amber-950 group-hover:text-amber-800" : "text-gray-300 group-hover:text-white"
+                            theme === "paper" 
+                              ? "text-amber-950 group-hover:text-amber-800" 
+                              : theme === "retro"
+                              ? "text-[#ebd9b4] group-hover:text-[#fff2d4]"
+                              : "text-gray-300 group-hover:text-white"
                           }`}>
                             {comment.author.name}
                           </span>
@@ -424,13 +522,13 @@ export default function ReaderWrapper({
                         <div className="flex items-center gap-2">
                           {comment.updatedAt !== comment.createdAt && (
                             <span className={`text-[9px] font-light italic ${
-                              theme === "paper" ? "text-amber-800/60" : "text-gray-500"
+                              theme === "paper" ? "text-amber-800/60" : theme === "retro" ? "text-[#a8997a]" : "text-gray-505"
                             }`}>
                               (edited)
                             </span>
                           )}
                           <span className={`text-[10px] font-light ${
-                            theme === "paper" ? "text-amber-850/80" : "text-gray-500"
+                            theme === "paper" ? "text-amber-850/80" : theme === "retro" ? "text-[#a8997a]" : "text-gray-505"
                           }`}>
                             {new Date(comment.createdAt).toLocaleDateString(undefined, {
                               month: "short",
@@ -450,6 +548,8 @@ export default function ReaderWrapper({
                             className={`w-full p-3 rounded-lg border text-sm focus:outline-none focus:ring-1 transition-all ${
                               theme === "paper"
                                 ? "bg-white/90 border-amber-900/20 text-[#2d2218] focus:ring-amber-800"
+                                : theme === "retro"
+                                ? "bg-[#1f1c16] border-[#3e382d] text-[#ebd9b4] focus:ring-[#968361]"
                                 : "bg-gray-950 border-gray-850 text-gray-200 focus:ring-gray-700"
                             }`}
                           />
@@ -460,6 +560,8 @@ export default function ReaderWrapper({
                               className={`px-4 py-1.5 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
                                 theme === "paper"
                                   ? "bg-amber-950 text-amber-50 hover:bg-amber-900"
+                                  : theme === "retro"
+                                  ? "bg-[#968361] text-[#181611] hover:bg-[#b09b77]"
                                   : "bg-white text-gray-950 hover:bg-gray-200"
                               }`}
                             >
@@ -473,6 +575,8 @@ export default function ReaderWrapper({
                               className={`px-4 py-1.5 rounded-full text-[11px] font-medium border transition-all cursor-pointer ${
                                 theme === "paper"
                                   ? "border-amber-900/20 text-amber-900 hover:bg-amber-900/5"
+                                  : theme === "retro"
+                                  ? "border-[#524a3a] text-[#a39474] hover:text-[#ebd9b4] hover:bg-[#353026]/20"
                                   : "border-gray-800 text-gray-400 hover:text-white hover:bg-gray-900"
                               }`}
                             >
@@ -483,7 +587,11 @@ export default function ReaderWrapper({
                       ) : (
                         <>
                           <p className={`text-sm leading-relaxed ${
-                            theme === "paper" ? "text-[#3c3024] font-light" : "text-gray-300 font-light"
+                            theme === "paper" 
+                              ? "text-[#3c3024] font-light" 
+                              : theme === "retro"
+                              ? "text-[#ebd9b4] font-mono font-light"
+                              : "text-gray-300 font-light"
                           }`}>
                             {comment.content}
                           </p>
@@ -497,7 +605,11 @@ export default function ReaderWrapper({
                                     setEditingText(comment.content);
                                   }}
                                   className={`text-[10px] font-medium transition-colors cursor-pointer hover:underline ${
-                                    theme === "paper" ? "text-amber-800 hover:text-amber-950" : "text-gray-500 hover:text-gray-300"
+                                    theme === "paper" 
+                                      ? "text-amber-800 hover:text-amber-950" 
+                                      : theme === "retro"
+                                      ? "text-[#a39474] hover:text-[#ebd9b4]"
+                                      : "text-gray-550 hover:text-gray-350"
                                   }`}
                                 >
                                   Edit
@@ -507,7 +619,11 @@ export default function ReaderWrapper({
                                 <button
                                   onClick={() => handleDeleteComment(comment.id)}
                                   className={`text-[10px] font-medium transition-colors cursor-pointer hover:underline ${
-                                    theme === "paper" ? "text-red-800 hover:text-red-950" : "text-gray-500 hover:text-red-400"
+                                    theme === "paper" 
+                                      ? "text-red-800 hover:text-red-950" 
+                                      : theme === "retro"
+                                      ? "text-red-400 hover:text-red-300"
+                                      : "text-gray-550 hover:text-red-400"
                                   }`}
                                 >
                                   Delete
