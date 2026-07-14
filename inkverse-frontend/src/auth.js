@@ -72,16 +72,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error("Error authenticating google user with backend:", error);
         }
       } else if (user) {
-        token.accessToken = (user as any).accessToken;
+        token.accessToken = user.accessToken;
         token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        (session as any).accessToken = token.accessToken;
+        session.accessToken = token.accessToken;
         if (session.user) {
-          (session.user as any).id = token.id as string;
+          session.user.id = token.id;
         }
       }
       return session;
