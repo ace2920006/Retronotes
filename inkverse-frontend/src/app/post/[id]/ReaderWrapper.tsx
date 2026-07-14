@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import UserAvatar from "@/components/UserAvatar";
@@ -35,6 +35,10 @@ export default function ReaderWrapper({
   const [hasLiked, setHasLiked] = useState(post.hasLiked);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+  const [showHeart, setShowHeart] = useState(false);
+  const [heartCoords, setHeartCoords] = useState({ x: 0, y: 0 });
+  const lastTapRef = useRef(0);
+
 
   // Calculate estimated reading time
   const wordCount = post.content.split(/\s+/).filter(Boolean).length;
@@ -82,6 +86,52 @@ export default function ReaderWrapper({
       setIsLiking(false);
     }
   };
+
+  const triggerDoubleTapLike = (clientX: number, clientY: number, targetElement: HTMLElement) => {
+    // Avoid double-tapping on links, buttons, inputs, etc.
+    if (
+      targetElement.closest("button") ||
+      targetElement.closest("a") ||
+      targetElement.closest("input") ||
+      targetElement.closest("textarea")
+    ) {
+      return;
+    }
+
+    const rect = targetElement.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    setHeartCoords({ x, y });
+
+    // Show heart pop-up animation
+    setShowHeart(true);
+    // Auto-hide heart after animation
+    const timer = setTimeout(() => setShowHeart(false), 800);
+
+    // Call handleLike if the post is not already liked
+    if (!hasLiked) {
+      handleLike();
+    }
+    
+    return () => clearTimeout(timer);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    if (now - lastTapRef.current < DOUBLE_PRESS_DELAY) {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        triggerDoubleTapLike(touch.clientX, touch.clientY, e.currentTarget);
+      }
+    }
+    lastTapRef.current = now;
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    triggerDoubleTapLike(e.clientX, e.clientY, e.currentTarget);
+  };
+
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -290,10 +340,22 @@ export default function ReaderWrapper({
 
           {/* Reading Card */}
           <article
-            className={`p-8 md:p-12 rounded-2xl border shadow-2xl transition-all duration-300 ${
+            onDoubleClick={handleDoubleClick}
+            onTouchStart={handleTouchStart}
+            className={`relative p-8 md:p-12 rounded-2xl border shadow-2xl transition-all duration-300 ${
               themeClasses[theme]
             }`}
           >
+            {/* Heart Animation Overlay */}
+            {showHeart && (
+              <div
+                className="absolute pointer-events-none z-50 text-red-500 text-6xl filter drop-shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-heart-pop"
+                style={{ left: `${heartCoords.x}px`, top: `${heartCoords.y}px` }}
+              >
+                ❤️
+              </div>
+            )}
+
             {/* Header info */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
               <Link

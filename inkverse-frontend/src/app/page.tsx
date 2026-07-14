@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchAPI } from "@/lib/api";
-import UserAvatar from "@/components/UserAvatar";
-import LikeButton from "@/components/LikeButton";
+import PostCard from "@/components/PostCard";
 
 export default async function Home({
   searchParams,
@@ -163,89 +162,12 @@ export default async function Home({
           </div>
         ) : (
           posts.map((post: any) => (
-            <div key={post.id} className="py-10 border-b border-gray-900 last:border-b-0">
-              <div className="flex items-center justify-between mb-6">
-                <Link
-                  href={`/profile/${post.authorId}`}
-                  className="flex items-center gap-3 group"
-                >
-                  <UserAvatar
-                    image={post.author.image}
-                    name={post.author.name}
-                    className="w-9 h-9 text-sm group-hover:border-gray-700 transition-colors"
-                  />
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
-                      {post.author.name}
-                    </h3>
-                    <p className="text-xs text-gray-550 font-light">
-                      {new Date(post.createdAt).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </Link>
-                
-                <span className="px-3 py-1 bg-gray-900/80 border border-gray-850 rounded-full text-xs text-gray-400 font-light">
-                  {post.type}
-                </span>
-              </div>
-
-              {post.title && (
-                <h2 className="text-xl font-serif font-semibold text-gray-150 mb-4 pl-4 border-l border-gray-800">
-                  {post.title}
-                </h2>
-              )}
-
-              <div className="font-serif text-lg leading-relaxed text-gray-200 mb-8 pl-4 pr-2 whitespace-pre-wrap">
-                {post.content}
-              </div>
-
-              <div className="flex items-center gap-6 text-gray-400 text-sm">
-                <LikeButton
-                  postId={post.id}
-                  initialLikesCount={post.likesCount}
-                  initialHasLiked={post.hasLiked}
-                  token={token || ""}
-                  isLoggedIn={!!session}
-                />
-
-                <Link
-                  href={`/post/${post.id}`}
-                  className="flex items-center gap-2 hover:text-blue-400 transition-colors"
-                >
-                  <span>💬</span> {post.commentsCount}
-                </Link>
-
-                <button className="flex items-center gap-2 hover:text-green-400 transition-colors ml-auto">
-                  <span>🔖</span> Save
-                </button>
-              </div>
-
-              {/* Quick comments display */}
-              {post.comments && post.comments.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-gray-900/60 space-y-3">
-                  {post.comments.slice(0, 2).map((comment: any) => (
-                    <div key={comment.id} className="text-xs bg-gray-900/30 p-2.5 rounded-lg border border-gray-900/40">
-                      <div className="flex justify-between items-center mb-1 text-gray-400">
-                        <span className="font-medium text-gray-300">{comment.author.name}</span>
-                        <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <p className="text-gray-350 font-light">{comment.content}</p>
-                    </div>
-                  ))}
-                  {post.comments.length > 2 && (
-                    <Link
-                      href={`/post/${post.id}`}
-                      className="inline-block text-xs text-gray-500 hover:text-gray-300 hover:underline font-light"
-                    >
-                      View all {post.comments.length} comments
-                    </Link>
-                  )}
-                </div>
-              )}
-            </div>
+            <PostCard
+              key={post.id}
+              post={post}
+              token={token || ""}
+              isLoggedIn={!!session}
+            />
           ))
         )}
 
