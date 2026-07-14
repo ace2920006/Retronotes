@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchAPI } from "@/lib/api";
 import UserAvatar from "./UserAvatar";
+import AmbientMusicPlayer from "./AmbientMusicPlayer";
 
 interface PostCardProps {
   post: any;
@@ -165,6 +166,10 @@ export default function PostCard({ post, token, isLoggedIn }: PostCardProps) {
           {post.title}
         </h2>
       )}
+
+      {/* Ambient Music Player */}
+      {post.songUrl && <AmbientMusicPlayer songUrl={post.songUrl} />}
+
 
       {/* Post Content */}
       <div className="font-serif text-lg leading-relaxed text-gray-200 mb-8 pl-4 pr-2 whitespace-pre-wrap">

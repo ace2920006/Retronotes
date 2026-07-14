@@ -16,6 +16,7 @@ export default async function WritePage() {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const type = formData.get("type") as string;
+    const songUrl = formData.get("songUrl") as string;
 
     if (!content || !type) {
       return;
@@ -32,6 +33,7 @@ export default async function WritePage() {
           title: title || undefined,
           content,
           type,
+          songUrl: songUrl || undefined,
         }),
       });
     } catch (error) {
@@ -86,6 +88,21 @@ export default async function WritePage() {
               placeholder="e.g. Whispers of Winter"
               className="w-full p-3 bg-gray-900 border border-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-700 transition-all font-light text-sm"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              Background Song URL (Optional)
+            </label>
+            <input
+              name="songUrl"
+              type="url"
+              placeholder="e.g. Spotify track, YouTube video, SoundCloud, or MP3 URL"
+              className="w-full p-3 bg-gray-900 border border-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-700 transition-all font-light text-sm"
+            />
+            <p className="text-[10px] text-gray-555 mt-1.5 font-light italic">
+              Attach a Spotify, YouTube, SoundCloud or direct audio link to set the mood.
+            </p>
           </div>
 
           <div>

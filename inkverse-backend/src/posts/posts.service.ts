@@ -5,12 +5,13 @@ import { PrismaService } from '../prisma.service';
 export class PostsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(authorId: string, data: { title?: string; content: string; type: string }) {
+  async create(authorId: string, data: { title?: string; content: string; type: string; songUrl?: string }) {
     return this.prisma.post.create({
       data: {
         title: data.title,
         content: data.content,
         type: data.type,
+        songUrl: data.songUrl,
         authorId,
       },
       include: {
@@ -137,7 +138,7 @@ export class PostsService {
     };
   }
 
-  async update(id: string, authorId: string, data: { title?: string; content?: string }) {
+  async update(id: string, authorId: string, data: { title?: string; content?: string; songUrl?: string }) {
     const post = await this.prisma.post.findUnique({ where: { id } });
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);

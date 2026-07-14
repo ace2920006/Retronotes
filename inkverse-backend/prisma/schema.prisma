@@ -48,6 +48,7 @@ model Post {
   author    User      @relation(fields: [authorId], references: [id])
   comments  Comment[]
   likes     Like[]
+  songUrl   String?
 }
 
 model Comment {

@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import UserAvatar from "@/components/UserAvatar";
+import AmbientMusicPlayer from "@/components/AmbientMusicPlayer";
 
 interface ReaderWrapperProps {
   post: any;
@@ -423,6 +424,10 @@ export default function ReaderWrapper({
                 {post.title}
               </h1>
             )}
+
+            {/* Ambient Music Player */}
+            {post.songUrl && <AmbientMusicPlayer songUrl={post.songUrl} />}
+
 
             {/* Post Content */}
             <div className={`whitespace-pre-wrap mb-12 pl-4 pr-2 ${fontClasses[fontSize]} ${familyClasses[fontFamily]}`}>

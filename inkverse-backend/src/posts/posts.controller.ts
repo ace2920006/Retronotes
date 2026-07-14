@@ -50,7 +50,7 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Request() req: any, @Body() body: { title?: string; content: string; type: string }) {
+  async create(@Request() req: any, @Body() body: { title?: string; content: string; type: string; songUrl?: string }) {
     return this.postsService.create(req.user.id, body);
   }
 
@@ -59,7 +59,7 @@ export class PostsController {
   async update(
     @Param('id') id: string,
     @Request() req: any,
-    @Body() body: { title?: string; content?: string },
+    @Body() body: { title?: string; content?: string; songUrl?: string },
   ) {
     return this.postsService.update(id, req.user.id, body);
   }
