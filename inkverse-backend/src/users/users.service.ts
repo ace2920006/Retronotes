@@ -40,6 +40,7 @@ export class UsersService {
       name: user.name,
       email: user.email,
       bio: user.bio,
+      songUrl: user.songUrl,
       image: user.image,
       createdAt: user.createdAt,
       followersCount,
@@ -54,7 +55,7 @@ export class UsersService {
     });
   }
 
-  async update(id: string, data: { name?: string; bio?: string; image?: string }): Promise<User> {
+  async update(id: string, data: { name?: string; bio?: string; image?: string; songUrl?: string | null }): Promise<User> {
     return this.prisma.user.update({
       where: { id },
       data,

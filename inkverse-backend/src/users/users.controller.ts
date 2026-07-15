@@ -40,7 +40,7 @@ export class UsersController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: { name?: string; bio?: string; image?: string },
+    @Body() body: { name?: string; bio?: string; image?: string; songUrl?: string | null },
     @Request() req: any,
   ) {
     // Only allow updating own profile

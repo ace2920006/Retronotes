@@ -10,6 +10,7 @@ interface EditProfileModalProps {
     name: string | null;
     bio: string | null;
     image: string | null;
+    songUrl: string | null;
   };
   token: string;
   onClose: () => void;
@@ -21,6 +22,7 @@ export default function EditProfileModal({ profile, token, onClose }: EditProfil
   
   const [name, setName] = useState(profile.name || "");
   const [bio, setBio] = useState(profile.bio || "");
+  const [songUrl, setSongUrl] = useState(profile.songUrl || "");
   const [imagePreview, setImagePreview] = useState<string | null>(profile.image);
   
   const [isSaving, setIsSaving] = useState(false);
@@ -112,6 +114,7 @@ export default function EditProfileModal({ profile, token, onClose }: EditProfil
         body: JSON.stringify({
           name: name.trim(),
           bio: bio.trim() || null,
+          songUrl: songUrl.trim() || null,
           image: imagePreview,
         }),
       });
@@ -252,6 +255,23 @@ export default function EditProfileModal({ profile, token, onClose }: EditProfil
             <div className="text-right text-[10px] text-gray-500 mt-1">
               {bio.length}/250 characters
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              🎵 Profile Theme Song URL
+            </label>
+            <input
+              type="text"
+              value={songUrl}
+              onChange={(e) => setSongUrl(e.target.value)}
+              placeholder="Spotify, YouTube, SoundCloud, or direct audio link"
+              disabled={isSaving}
+              className="w-full p-3 bg-gray-950 border border-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-750 transition-all font-light text-sm"
+            />
+            <p className="text-[10px] text-gray-500 mt-1.5 leading-normal">
+              Attach a soundtrack to your profile. Paste a Spotify, YouTube, SoundCloud, or direct audio file URL.
+            </p>
           </div>
 
           {/* Actions */}

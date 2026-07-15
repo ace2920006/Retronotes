@@ -9,6 +9,7 @@ interface EditProfileControlProps {
     name: string | null;
     bio: string | null;
     image: string | null;
+    songUrl: string | null;
   };
   token: string;
 }

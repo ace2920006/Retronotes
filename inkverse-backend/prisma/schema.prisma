@@ -19,6 +19,7 @@ model User {
   emailVerified DateTime?
   image         String?
   bio           String?
+  songUrl       String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   posts         Post[]

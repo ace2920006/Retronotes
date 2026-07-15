@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import UserAvatar from "@/components/UserAvatar";
 import EditProfileControl from "./EditProfileControl";
 import FollowButton from "@/components/FollowButton";
+import AmbientMusicPlayer from "@/components/AmbientMusicPlayer";
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
   // Access Route params. In Next.js 15+, params is a promise, so we can await it
@@ -90,6 +91,11 @@ export default async function ProfilePage({ params }: { params: { id: string } }
             <p className="text-gray-450 mb-6 font-light max-w-lg leading-relaxed text-sm">
               {profile.bio || "This writer has chosen to keep their thoughts inside their head for now."}
             </p>
+            {profile.songUrl && (
+              <div className="max-w-md mx-auto md:mx-0 mb-6">
+                <AmbientMusicPlayer songUrl={profile.songUrl} />
+              </div>
+            )}
             <div className="flex justify-center md:justify-start gap-6 text-xs text-gray-500 mb-6">
               <span><strong className="text-gray-300">{posts.length}</strong> Published Works</span>
               <span><strong className="text-gray-300">{profile.followersCount || 0}</strong> Followers</span>
