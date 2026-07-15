@@ -22,7 +22,7 @@ export class PostsService {
     });
   }
 
-  async findFeed(currentUserId?: string, type?: string, search?: string) {
+  async findFeed(currentUserId?: string, type?: string, search?: string, followingOnly?: boolean) {
     const where: any = {};
 
     if (type && type !== 'All') {
@@ -39,6 +39,14 @@ export class PostsService {
           },
         },
       ];
+    }
+
+    if (followingOnly && currentUserId) {
+      const followedUsers = await this.prisma.follows.findMany({
+        where: { followerId: currentUserId },
+        select: { followingId: true },
+      });
+      where.authorId = { in: followedUsers.map((f) => f.followingId) };
     }
 
     const posts = await this.prisma.post.findMany({

@@ -31,9 +31,10 @@ export class PostsController {
     @Request() req: any,
     @Query('type') type?: string,
     @Query('search') search?: string,
+    @Query('following') following?: string,
   ) {
     const userId = this.extractUserId(req);
-    return this.postsService.findFeed(userId, type, search);
+    return this.postsService.findFeed(userId, type, search, following === 'true');
   }
 
   @Get('user/:userId')
