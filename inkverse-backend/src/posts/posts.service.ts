@@ -175,4 +175,37 @@ export class PostsService {
     });
     return { success: true };
   }
+
+  async findTrending(currentUserId?: string) {
+    const posts = await this.prisma.post.findMany({
+      include: {
+        author: {
+          select: { id: true, name: true, image: true, bio: true },
+        },
+        comments: {
+          include: {
+            author: {
+              select: { id: true, name: true, image: true },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        likes: true,
+      },
+    });
+
+    return posts
+      .map((post) => {
+        const { likes, comments, ...rest } = post;
+        return {
+          ...rest,
+          likesCount: likes.length,
+          commentsCount: comments.length,
+          comments,
+          hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
+        };
+      })
+      .sort((a, b) => b.likesCount - a.likesCount)
+      .slice(0, 5);
+  }
 }

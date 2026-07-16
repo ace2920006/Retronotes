@@ -43,6 +43,12 @@ export class PostsController {
     return this.postsService.findByUser(userId, currentUserId);
   }
 
+  @Get('trending')
+  async getTrending(@Request() req: any) {
+    const currentUserId = this.extractUserId(req);
+    return this.postsService.findTrending(currentUserId);
+  }
+
   @Get(':id')
   async getPost(@Param('id') id: string, @Request() req: any) {
     const currentUserId = this.extractUserId(req);
