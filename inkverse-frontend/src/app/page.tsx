@@ -54,6 +54,12 @@ export default async function Home({
             </span>
             <div className="flex gap-3">
               <Link
+                href="/explore"
+                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-full border border-gray-850 transition-colors text-sm"
+              >
+                Explore
+              </Link>
+              <Link
                 href="/feed"
                 className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-full border border-gray-850 transition-colors text-sm"
               >
@@ -83,6 +89,12 @@ export default async function Home({
           </div>
         ) : (
           <div className="mt-8 flex gap-4 justify-center">
+            <Link
+              href="/explore"
+              className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-850 rounded-full transition-colors text-sm"
+            >
+              Explore
+            </Link>
             <Link
               href="/login"
               className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-850 rounded-full transition-colors text-sm"
