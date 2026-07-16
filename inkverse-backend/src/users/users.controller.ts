@@ -26,6 +26,12 @@ export class UsersController {
     return undefined;
   }
 
+  @Get('featured')
+  async getFeatured(@Request() req: any) {
+    const currentUserId = this.extractUserId(req);
+    return this.usersService.getFeatured(currentUserId);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req: any) {
     const currentUserId = this.extractUserId(req);

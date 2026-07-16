@@ -61,4 +61,31 @@ export class UsersService {
       data,
     });
   }
+
+  async getFeatured(currentUserId?: string) {
+    const users = await this.prisma.user.findMany({
+      include: {
+        followers: true,
+      },
+    });
+
+    const mapped = users
+      .filter((user) => user.id !== currentUserId)
+      .map((user) => {
+        const followersCount = user.followers.length;
+        const isFollowing = currentUserId
+          ? user.followers.some((f) => f.followerId === currentUserId)
+          : false;
+        return {
+          id: user.id,
+          name: user.name,
+          bio: user.bio,
+          image: user.image,
+          followersCount,
+          isFollowing,
+        };
+      });
+
+    return mapped.sort((a, b) => b.followersCount - a.followersCount).slice(0, 5);
+  }
 }
