@@ -65,18 +65,20 @@ export class PostsService {
           orderBy: { createdAt: 'asc' },
         },
         likes: true,
+        bookmarks: true,
       },
     });
 
-    // Format output with counts and hasLiked boolean
+    // Format output with counts and hasLiked/hasBookmarked boolean
     return posts.map((post) => {
-      const { likes, comments, ...rest } = post;
+      const { likes, comments, bookmarks, ...rest } = post;
       return {
         ...rest,
         likesCount: likes.length,
         commentsCount: comments.length,
         comments,
         hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
+        hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
       };
     });
   }
@@ -98,17 +100,19 @@ export class PostsService {
           orderBy: { createdAt: 'asc' },
         },
         likes: true,
+        bookmarks: true,
       },
     });
 
     return posts.map((post) => {
-      const { likes, comments, ...rest } = post;
+      const { likes, comments, bookmarks, ...rest } = post;
       return {
         ...rest,
         likesCount: likes.length,
         commentsCount: comments.length,
         comments,
         hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
+        hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
       };
     });
   }
@@ -129,6 +133,7 @@ export class PostsService {
           orderBy: { createdAt: 'asc' },
         },
         likes: true,
+        bookmarks: true,
       },
     });
 
@@ -136,13 +141,14 @@ export class PostsService {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
 
-    const { likes, comments, ...rest } = post;
+    const { likes, comments, bookmarks, ...rest } = post;
     return {
       ...rest,
       likesCount: likes.length,
       commentsCount: comments.length,
       comments,
       hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
+      hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
     };
   }
 
@@ -191,18 +197,20 @@ export class PostsService {
           orderBy: { createdAt: 'asc' },
         },
         likes: true,
+        bookmarks: true,
       },
     });
 
     return posts
       .map((post) => {
-        const { likes, comments, ...rest } = post;
+        const { likes, comments, bookmarks, ...rest } = post;
         return {
           ...rest,
           likesCount: likes.length,
           commentsCount: comments.length,
           comments,
           hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
+          hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
         };
       })
       .sort((a, b) => b.likesCount - a.likesCount)

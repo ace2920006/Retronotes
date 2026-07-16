@@ -9,9 +9,10 @@ import { CommentsModule } from './comments/comments.module';
 import { LikesModule } from './likes/likes.module';
 import { FollowsModule } from './follows/follows.module';
 import { AiModule } from './ai/ai.module';
+import { BookmarksModule } from './bookmarks/bookmarks.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, PostsModule, CommentsModule, LikesModule, FollowsModule, AiModule],
+  imports: [AuthModule, UsersModule, PostsModule, CommentsModule, LikesModule, FollowsModule, AiModule, BookmarksModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })

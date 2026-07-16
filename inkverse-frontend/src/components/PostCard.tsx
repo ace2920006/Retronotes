@@ -17,6 +17,7 @@ export default function PostCard({ post, token, isLoggedIn }: PostCardProps) {
   const router = useRouter();
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [hasLiked, setHasLiked] = useState(post.hasLiked);
+  const [hasBookmarked, setHasBookmarked] = useState(post.hasBookmarked || false);
   const [isPending, startTransition] = useTransition();
   const [isAnimating, setIsAnimating] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
@@ -66,6 +67,41 @@ export default function PostCard({ post, token, isLoggedIn }: PostCardProps) {
         // Rollback on failure
         setHasLiked(previousHasLiked);
         setLikesCount(previousLikesCount);
+      }
+    });
+  };
+
+  const handleBookmark = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    if (isPending) return;
+
+    const previousHasBookmarked = hasBookmarked;
+    setHasBookmarked(!hasBookmarked);
+
+    startTransition(async () => {
+      try {
+        if (previousHasBookmarked) {
+          await fetchAPI(`/bookmarks/${post.id}`, {
+            method: "DELETE",
+            token,
+          });
+        } else {
+          await fetchAPI(`/bookmarks/${post.id}`, {
+            method: "POST",
+            token,
+          });
+        }
+        router.refresh();
+      } catch (error) {
+        console.error("Bookmark toggle failed:", error);
+        setHasBookmarked(previousHasBookmarked);
       }
     });
   };
@@ -203,8 +239,15 @@ export default function PostCard({ post, token, isLoggedIn }: PostCardProps) {
           <span>💬</span> {post.commentsCount}
         </Link>
 
-        <button className="flex items-center gap-2 hover:text-green-400 transition-colors ml-auto">
-          <span>🔖</span> Save
+        <button
+          onClick={handleBookmark}
+          disabled={isPending}
+          className={`flex items-center gap-2 hover:text-green-400 transition-colors ml-auto ${
+            hasBookmarked ? "text-green-500 font-semibold" : "text-gray-400"
+          } ${isPending ? "opacity-75 cursor-wait" : "cursor-pointer"}`}
+          title={isLoggedIn ? (hasBookmarked ? "Remove bookmark" : "Bookmark post") : "Log in to bookmark"}
+        >
+          <span>🔖</span> {hasBookmarked ? "Saved" : "Save"}
         </button>
       </div>
 

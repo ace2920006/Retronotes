@@ -66,6 +66,12 @@ export default async function Home({
                 Your Feed
               </Link>
               <Link
+                href="/bookmarks"
+                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-full border border-gray-850 transition-colors text-sm"
+              >
+                Bookmarks
+              </Link>
+              <Link
                 href="/write"
                 className="px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-colors text-sm shadow-md"
               >

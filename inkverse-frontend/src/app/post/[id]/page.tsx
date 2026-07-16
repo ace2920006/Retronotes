@@ -131,11 +131,39 @@ export default async function PostPage({ params }: PostPageProps) {
     }
   }
 
+  // Server Action to handle bookmark toggle
+  async function toggleBookmark() {
+    "use server";
+    const session = await auth();
+    if (!session) return;
+    const token = (session as any).accessToken;
+
+    try {
+      if (post.hasBookmarked) {
+        await fetchAPI(`/bookmarks/${id}`, {
+          method: "DELETE",
+          token,
+        });
+      } else {
+        await fetchAPI(`/bookmarks/${id}`, {
+          method: "POST",
+          token,
+        });
+      }
+      revalidatePath(`/post/${id}`);
+      revalidatePath("/");
+    } catch (error) {
+      console.error("Server Action bookmark toggle failed:", error);
+      throw error;
+    }
+  }
+
   return (
     <ReaderWrapper
       post={post}
       session={session}
       likeAction={toggleLike}
+      bookmarkAction={toggleBookmark}
       commentAction={addComment}
       editCommentAction={editComment}
       deleteCommentAction={deleteComment}

@@ -25,6 +25,7 @@ model User {
   posts         Post[]
   comments      Comment[]
   likes         Like[]
+  bookmarks     Bookmark[]
   followers     Follows[] @relation("following")
   following     Follows[] @relation("follower")
 }
@@ -49,6 +50,7 @@ model Post {
   author    User      @relation(fields: [authorId], references: [id])
   comments  Comment[]
   likes     Like[]
+  bookmarks Bookmark[]
   songUrl   String?
 }
 
@@ -70,6 +72,17 @@ model Like {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+  
+  @@unique([postId, userId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@unique([postId, userId])
 }

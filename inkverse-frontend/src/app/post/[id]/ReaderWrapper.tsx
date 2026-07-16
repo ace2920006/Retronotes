@@ -10,6 +10,7 @@ interface ReaderWrapperProps {
   post: any;
   session: any;
   likeAction: () => Promise<void>;
+  bookmarkAction: () => Promise<void>;
   commentAction: (content: string) => Promise<any>;
   editCommentAction: (commentId: string, content: string) => Promise<any>;
   deleteCommentAction: (commentId: string) => Promise<any>;
@@ -19,6 +20,7 @@ export default function ReaderWrapper({
   post,
   session,
   likeAction,
+  bookmarkAction,
   commentAction,
   editCommentAction,
   deleteCommentAction,
@@ -34,6 +36,8 @@ export default function ReaderWrapper({
   const [isLiking, setIsLiking] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [hasLiked, setHasLiked] = useState(post.hasLiked);
+  const [hasBookmarked, setHasBookmarked] = useState(post.hasBookmarked || false);
+  const [isBookmarking, setIsBookmarking] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [showHeart, setShowHeart] = useState(false);
@@ -62,6 +66,7 @@ export default function ReaderWrapper({
     setComments(post.comments || []);
     setLikesCount(post.likesCount);
     setHasLiked(post.hasLiked);
+    setHasBookmarked(post.hasBookmarked || false);
   }, [post]);
 
   const handleLike = async () => {
@@ -85,6 +90,25 @@ export default function ReaderWrapper({
       setLikesCount(previousLikesCount);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    setIsBookmarking(true);
+    const previousHasBookmarked = hasBookmarked;
+    setHasBookmarked(!hasBookmarked);
+
+    try {
+      await bookmarkAction();
+    } catch (error) {
+      console.error("Bookmark toggle failed:", error);
+      setHasBookmarked(previousHasBookmarked);
+    } finally {
+      setIsBookmarking(false);
     }
   };
 
@@ -460,6 +484,23 @@ export default function ReaderWrapper({
               }`}>
                 <span>💬</span> {comments.length}
               </span>
+
+              <button
+                onClick={handleBookmark}
+                disabled={isBookmarking}
+                className={`flex items-center gap-2 transition-colors py-1.5 px-3 rounded-full ml-auto ${
+                  hasBookmarked
+                    ? "text-green-500 bg-green-500/10"
+                    : theme === "paper"
+                    ? "text-amber-800 hover:text-green-600 hover:bg-amber-100/50"
+                    : theme === "retro"
+                    ? "text-[#a39474] hover:text-green-400 hover:bg-[#353026]/40"
+                    : "text-gray-400 hover:text-green-400 hover:bg-gray-900/20"
+                }`}
+                title={session ? "Save post" : "Log in to save"}
+              >
+                <span>🔖</span> {hasBookmarked ? "Saved" : "Save"}
+              </button>
             </div>
           </article>
 
