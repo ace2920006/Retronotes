@@ -1,79 +1,75 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request, Query } from '@nestjs/common';
-import { PostsService } from './posts.service';
+import { NotesService } from './notes.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { JwtService } from '@nestjs/jwt';
 
-@Controller('posts')
-export class PostsController {
-  constructor(
-    private readonly postsService: PostsService,
-    private readonly jwtService: JwtService,
-  ) {}
+@Controller('notes')
+@UseGuards(JwtAuthGuard)
+export class NotesController {
+  constructor(private readonly notesService: NotesService) {}
 
-  private extractUserId(req: any): string | undefined {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
-      try {
-        const payload = this.jwtService.verify(token, {
-          secret: process.env.JWT_SECRET || 'secret_inkverse_2026',
-        });
-        return payload.sub;
-      } catch (e) {
-        // Token invalid/expired, treat as guest
-      }
-    }
-    return undefined;
-  }
-
-  @Get('feed')
-  async getFeed(
+  @Post()
+  async create(
     @Request() req: any,
-    @Query('type') type?: string,
-    @Query('search') search?: string,
-    @Query('following') following?: string,
+    @Body() body: {
+      title: string;
+      content: string;
+      folderId?: string;
+      tagNames?: string[];
+      isPinned?: boolean;
+      isFavorite?: boolean;
+    }
   ) {
-    const userId = this.extractUserId(req);
-    return this.postsService.findFeed(userId, type, search, following === 'true');
+    return this.notesService.create(req.user.id, body);
   }
 
-  @Get('user/:userId')
-  async getUserPosts(@Param('userId') userId: string, @Request() req: any) {
-    const currentUserId = this.extractUserId(req);
-    return this.postsService.findByUser(userId, currentUserId);
+  @Get()
+  async getNotes(
+    @Request() req: any,
+    @Query('folderId') folderId?: string,
+    @Query('tag') tag?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string, // e.g. 'pinned', 'archived', 'trashed', 'favorite'
+    @Query('sort') sort?: 'newest' | 'oldest',
+  ) {
+    return this.notesService.findAll(req.user.id, {
+      folderId,
+      tag,
+      search,
+      status,
+      sort,
+    });
   }
 
-  @Get('trending')
-  async getTrending(@Request() req: any) {
-    const currentUserId = this.extractUserId(req);
-    return this.postsService.findTrending(currentUserId);
+  @Post('empty-trash')
+  async emptyTrash(@Request() req: any) {
+    return this.notesService.emptyTrash(req.user.id);
   }
 
   @Get(':id')
-  async getPost(@Param('id') id: string, @Request() req: any) {
-    const currentUserId = this.extractUserId(req);
-    return this.postsService.findOne(id, currentUserId);
+  async getNote(@Param('id') id: string, @Request() req: any) {
+    return this.notesService.findOne(id, req.user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  async create(@Request() req: any, @Body() body: { title?: string; content: string; type: string; songUrl?: string }) {
-    return this.postsService.create(req.user.id, body);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Request() req: any,
-    @Body() body: { title?: string; content?: string; songUrl?: string },
+    @Body() body: {
+      title?: string;
+      content?: string;
+      folderId?: string;
+      tagNames?: string[];
+      isPinned?: boolean;
+      isArchived?: boolean;
+      isTrashed?: boolean;
+      isFavorite?: boolean;
+    }
   ) {
-    return this.postsService.update(id, req.user.id, body);
+    return this.notesService.update(id, req.user.id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req: any) {
-    return this.postsService.remove(id, req.user.id);
+    return this.notesService.remove(id, req.user.id);
   }
 }

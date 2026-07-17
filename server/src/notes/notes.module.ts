@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
-import { PostsService } from './posts.service';
-import { PostsController } from './posts.controller';
+import { NotesService } from './notes.service';
+import { NotesController } from './notes.controller';
 import { PrismaService } from '../prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret_inkverse_2026',
+      secret: process.env.JWT_SECRET || 'secret_retronotes_2026',
       signOptions: { expiresIn: '7d' },
     }),
   ],
-  controllers: [PostsController],
-  providers: [PostsService, PrismaService],
-  exports: [PostsService],
+  controllers: [NotesController],
+  providers: [NotesService, PrismaService],
+  exports: [NotesService],
 })
-export class PostsModule {}
+export class NotesModule {}

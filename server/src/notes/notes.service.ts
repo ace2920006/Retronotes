@@ -1,219 +1,215 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
-export class PostsService {
-  constructor(private prisma: PrismaService) {}
+export class NotesService {
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(authorId: string, data: { title?: string; content: string; type: string; songUrl?: string }) {
-    return this.prisma.post.create({
+  async create(
+    userId: string,
+    data: {
+      title: string;
+      content: string;
+      folderId?: string;
+      tagNames?: string[];
+      isPinned?: boolean;
+      isFavorite?: boolean;
+    }
+  ) {
+    const { title, content, folderId, tagNames, isPinned, isFavorite } = data;
+
+    const tagsConnectOrCreate = tagNames
+      ? tagNames.map((name) => ({
+          where: { name_userId: { name, userId } },
+          create: { name, userId },
+        }))
+      : [];
+
+    return this.prisma.note.create({
       data: {
-        title: data.title,
-        content: data.content,
-        type: data.type,
-        songUrl: data.songUrl,
-        authorId,
+        title,
+        content,
+        isPinned: isPinned ?? false,
+        isFavorite: isFavorite ?? false,
+        user: { connect: { id: userId } },
+        folder: folderId ? { connect: { id: folderId } } : undefined,
+        tags: {
+          connectOrCreate: tagsConnectOrCreate,
+        },
       },
       include: {
-        author: {
-          select: { id: true, name: true, image: true },
-        },
+        folder: true,
+        tags: true,
       },
     });
   }
 
-  async findFeed(currentUserId?: string, type?: string, search?: string, followingOnly?: boolean) {
-    const where: any = {};
+  async findAll(
+    userId: string,
+    filters: {
+      folderId?: string;
+      tag?: string;
+      search?: string;
+      status?: string;
+      sort?: 'newest' | 'oldest';
+    }
+  ) {
+    const { folderId, tag, search, status, sort } = filters;
 
-    if (type && type !== 'All') {
-      where.type = type;
+    const whereClause: any = {
+      userId,
+    };
+
+    // Folder filter
+    if (folderId) {
+      whereClause.folderId = folderId;
     }
 
+    // Tag filter
+    if (tag) {
+      whereClause.tags = {
+        some: {
+          name: tag,
+        },
+      };
+    }
+
+    // Search filter (title or content)
     if (search) {
-      where.OR = [
+      whereClause.OR = [
         { title: { contains: search } },
         { content: { contains: search } },
-        {
-          author: {
-            name: { contains: search },
-          },
-        },
       ];
     }
 
-    if (followingOnly && currentUserId) {
-      const followedUsers = await this.prisma.follows.findMany({
-        where: { followerId: currentUserId },
-        select: { followingId: true },
-      });
-      where.authorId = { in: followedUsers.map((f) => f.followingId) };
+    // Status filter
+    if (status === 'pinned') {
+      whereClause.isPinned = true;
+      whereClause.isTrashed = false;
+      whereClause.isArchived = false;
+    } else if (status === 'archived') {
+      whereClause.isArchived = true;
+      whereClause.isTrashed = false;
+    } else if (status === 'trashed') {
+      whereClause.isTrashed = true;
+    } else if (status === 'favorite') {
+      whereClause.isFavorite = true;
+      whereClause.isTrashed = false;
+      whereClause.isArchived = false;
+    } else {
+      // By default, do not show archived or trashed notes
+      whereClause.isTrashed = false;
+      whereClause.isArchived = false;
     }
 
-    const posts = await this.prisma.post.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        author: {
-          select: { id: true, name: true, image: true, bio: true },
-        },
-        comments: {
-          include: {
-            author: {
-              select: { id: true, name: true, image: true },
-            },
-          },
-          orderBy: { createdAt: 'asc' },
-        },
-        likes: true,
-        bookmarks: true,
-      },
-    });
-
-    // Format output with counts and hasLiked/hasBookmarked boolean
-    return posts.map((post) => {
-      const { likes, comments, bookmarks, ...rest } = post;
-      return {
-        ...rest,
-        likesCount: likes.length,
-        commentsCount: comments.length,
-        comments,
-        hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
-        hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
-      };
-    });
-  }
-
-  async findByUser(userId: string, currentUserId?: string) {
-    const posts = await this.prisma.post.findMany({
-      where: { authorId: userId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        author: {
-          select: { id: true, name: true, image: true, bio: true },
-        },
-        comments: {
-          include: {
-            author: {
-              select: { id: true, name: true, image: true },
-            },
-          },
-          orderBy: { createdAt: 'asc' },
-        },
-        likes: true,
-        bookmarks: true,
-      },
-    });
-
-    return posts.map((post) => {
-      const { likes, comments, bookmarks, ...rest } = post;
-      return {
-        ...rest,
-        likesCount: likes.length,
-        commentsCount: comments.length,
-        comments,
-        hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
-        hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
-      };
-    });
-  }
-
-  async findOne(id: string, currentUserId?: string) {
-    const post = await this.prisma.post.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: { id: true, name: true, image: true, bio: true },
-        },
-        comments: {
-          include: {
-            author: {
-              select: { id: true, name: true, image: true },
-            },
-          },
-          orderBy: { createdAt: 'asc' },
-        },
-        likes: true,
-        bookmarks: true,
-      },
-    });
-
-    if (!post) {
-      throw new NotFoundException(`Post with ID ${id} not found`);
-    }
-
-    const { likes, comments, bookmarks, ...rest } = post;
-    return {
-      ...rest,
-      likesCount: likes.length,
-      commentsCount: comments.length,
-      comments,
-      hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
-      hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
+    const orderBy = {
+      updatedAt: (sort === 'oldest' ? 'asc' : 'desc') as 'asc' | 'desc',
     };
-  }
 
-  async update(id: string, authorId: string, data: { title?: string; content?: string; songUrl?: string }) {
-    const post = await this.prisma.post.findUnique({ where: { id } });
-    if (!post) {
-      throw new NotFoundException(`Post with ID ${id} not found`);
-    }
-    if (post.authorId !== authorId) {
-      throw new ForbiddenException('You can only edit your own posts');
-    }
-
-    return this.prisma.post.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async remove(id: string, authorId: string) {
-    const post = await this.prisma.post.findUnique({ where: { id } });
-    if (!post) {
-      throw new NotFoundException(`Post with ID ${id} not found`);
-    }
-    if (post.authorId !== authorId) {
-      throw new ForbiddenException('You can only delete your own posts');
-    }
-
-    await this.prisma.post.delete({
-      where: { id },
-    });
-    return { success: true };
-  }
-
-  async findTrending(currentUserId?: string) {
-    const posts = await this.prisma.post.findMany({
+    return this.prisma.note.findMany({
+      where: whereClause,
       include: {
-        author: {
-          select: { id: true, name: true, image: true, bio: true },
-        },
-        comments: {
-          include: {
-            author: {
-              select: { id: true, name: true, image: true },
-            },
-          },
-          orderBy: { createdAt: 'asc' },
-        },
-        likes: true,
-        bookmarks: true,
+        folder: true,
+        tags: true,
+      },
+      orderBy,
+    });
+  }
+
+  async findOne(id: string, userId: string) {
+    const note = await this.prisma.note.findUnique({
+      where: { id },
+      include: {
+        folder: true,
+        tags: true,
       },
     });
 
-    return posts
-      .map((post) => {
-        const { likes, comments, bookmarks, ...rest } = post;
-        return {
-          ...rest,
-          likesCount: likes.length,
-          commentsCount: comments.length,
-          comments,
-          hasLiked: currentUserId ? likes.some((like) => like.userId === currentUserId) : false,
-          hasBookmarked: currentUserId ? bookmarks.some((b) => b.userId === currentUserId) : false,
-        };
-      })
-      .sort((a, b) => b.likesCount - a.likesCount)
-      .slice(0, 5);
+    if (!note) {
+      throw new NotFoundException(`Note with ID ${id} not found`);
+    }
+
+    if (note.userId !== userId) {
+      throw new ForbiddenException('You do not own this note');
+    }
+
+    return note;
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    data: {
+      title?: string;
+      content?: string;
+      folderId?: string;
+      tagNames?: string[];
+      isPinned?: boolean;
+      isArchived?: boolean;
+      isTrashed?: boolean;
+      isFavorite?: boolean;
+    }
+  ) {
+    // Check ownership
+    await this.findOne(id, userId);
+
+    const { title, content, folderId, tagNames, isPinned, isArchived, isTrashed, isFavorite } = data;
+
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    if (isPinned !== undefined) updateData.isPinned = isPinned;
+    if (isArchived !== undefined) updateData.isArchived = isArchived;
+    if (isTrashed !== undefined) updateData.isTrashed = isTrashed;
+    if (isFavorite !== undefined) updateData.isFavorite = isFavorite;
+
+    // Handle Folder update
+    if (folderId !== undefined) {
+      if (folderId === null || folderId === '') {
+        updateData.folder = { disconnect: true };
+      } else {
+        updateData.folder = { connect: { id: folderId } };
+      }
+    }
+
+    // Handle Tags update
+    if (tagNames !== undefined) {
+      const tagsConnectOrCreate = tagNames.map((name) => ({
+        where: { name_userId: { name, userId } },
+        create: { name, userId },
+      }));
+
+      updateData.tags = {
+        set: [], // clear current tags
+        connectOrCreate: tagsConnectOrCreate,
+      };
+    }
+
+    return this.prisma.note.update({
+      where: { id },
+      data: updateData,
+      include: {
+        folder: true,
+        tags: true,
+      },
+    });
+  }
+
+  async remove(id: string, userId: string) {
+    // Check ownership
+    await this.findOne(id, userId);
+
+    return this.prisma.note.delete({
+      where: { id },
+    });
+  }
+
+  async emptyTrash(userId: string) {
+    return this.prisma.note.deleteMany({
+      where: {
+        userId,
+        isTrashed: true,
+      },
+    });
   }
 }
