@@ -1,202 +1,78 @@
 import Link from "next/link";
 import { auth } from "@/auth";
-import { fetchAPI } from "@/lib/api";
-import PostCard from "@/components/PostCard";
+import NotesDashboard from "@/components/NotesDashboard";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: Promise<{ type?: string; search?: string }> | { type?: string; search?: string };
-}) {
-  const resolvedSearchParams = await searchParams;
-  const type = resolvedSearchParams?.type || "All";
-  const search = resolvedSearchParams?.search || "";
-
+export default async function Home() {
   const session = await auth();
   const token = (session as any)?.accessToken;
 
-  let posts = [];
-  let fetchError = false;
-
-  try {
-    const query = new URLSearchParams();
-    if (type && type !== "All") query.set("type", type);
-    if (search) query.set("search", search);
-
-    const queryString = query.toString();
-    const endpoint = `/posts/feed${queryString ? `?${queryString}` : ""}`;
-
-    posts = await fetchAPI(endpoint, {
-      token,
-      next: { revalidate: 0 },
-    });
-  } catch (error) {
-    console.error("Failed to fetch feed:", error);
-    fetchError = true;
+  if (session?.user && token) {
+    return (
+      <NotesDashboard
+        token={token}
+        user={{
+          id: (session.user as any).id,
+          name: session.user.name || "User",
+          email: session.user.email || "",
+          image: session.user.image || undefined,
+        }}
+      />
+    );
   }
 
-  const categories = ["All", "Poetry", "Haiku", "Story", "Thought"];
-
+  // Not logged in: Show CRT Retro Boot Loader / Landing Page
   return (
-    <main className="flex min-h-screen flex-col items-center py-16 px-4 bg-gray-950 text-gray-200">
-      <header className="mb-12 text-center max-w-xl">
-        <h1 className="text-5xl font-serif font-bold text-gray-100 mb-3 tracking-wide">
-          InkVerse
-        </h1>
-        <p className="text-gray-400 font-light italic text-lg">
-          Where Stories Meet Souls
-        </p>
-
-        {session?.user ? (
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <span className="text-gray-400 text-sm">
-              Greeting, <Link href={`/profile/${(session.user as any).id}`} className="text-white hover:underline font-medium">{session.user.name}</Link>
-            </span>
-            <div className="flex gap-3">
-              <Link
-                href="/explore"
-                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-full border border-gray-850 transition-colors text-sm"
-              >
-                Explore
-              </Link>
-              <Link
-                href="/feed"
-                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-full border border-gray-850 transition-colors text-sm"
-              >
-                Your Feed
-              </Link>
-              <Link
-                href="/bookmarks"
-                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-full border border-gray-850 transition-colors text-sm"
-              >
-                Bookmarks
-              </Link>
-              <Link
-                href="/write"
-                className="px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-colors text-sm shadow-md"
-              >
-                Write Poem
-              </Link>
-              <form
-                action={async () => {
-                  "use server";
-                  const { signOut } = await import("@/auth");
-                  await signOut();
-                }}
-              >
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded-full border border-gray-800 transition-colors text-sm"
-                >
-                  Sign Out
-                </button>
-              </form>
-            </div>
+    <main className="crt-container min-h-screen bg-[#071407] text-[#33ff33] font-mono flex items-center justify-center p-6 select-none crt-effect crt-flicker">
+      <div className="max-w-2xl w-full retro-border border-4 p-8 bg-[#0b220b]/90 text-glow">
+        {/* Header BIOS info */}
+        <div className="border-b border-[#33ff33]/40 pb-4 mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-widest uppercase">RetroNotes OS</h1>
+            <p className="text-xs text-gray-500 font-sans tracking-wide">SYSTEM RELEASE: DATED 07/17/2026</p>
           </div>
-        ) : (
-          <div className="mt-8 flex gap-4 justify-center">
-            <Link
-              href="/explore"
-              className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-850 rounded-full transition-colors text-sm"
-            >
-              Explore
-            </Link>
+          <span className="text-xl">📟</span>
+        </div>
+
+        {/* System Diagnostics Display */}
+        <div className="space-y-4 text-xs font-mono mb-8 leading-relaxed">
+          <div className="grid grid-cols-2 gap-2">
+            <div>CPU TYPE:</div>
+            <div className="font-bold">GEMINI 2.5 FLASH AI ENGINE</div>
+            <div>DB DRIVER:</div>
+            <div className="font-bold">SQLITE 3 + PRISMA ORM</div>
+            <div>ROM LOADED:</div>
+            <div className="font-bold">NEXT.JS 16 + REACT 19</div>
+            <div>AUTHENTICATION:</div>
+            <div className="font-bold">NEXTAUTH + JWT SECURITY</div>
+          </div>
+          
+          <div className="border border-[#1b4d1b] p-4 bg-black/30 mt-4">
+            <p className="font-bold mb-2 uppercase text-[11px]">Core Features Available:</p>
+            <ul className="space-y-1 list-inside list-square">
+              <li>📝 DUAL-PANE MARKDOWN EDITOR & LIVE PREVIEW</li>
+              <li>📁 DIRECTORY FOLDERS & granulAR TAGGING SYSTEM</li>
+              <li>📌 PINNED NOTES, FAVORITES, ARCHIVE, AND TRASH ACTION</li>
+              <li>⚡ LOCAL STORAGE SYNC FOR FULL OFFLINE USE</li>
+              <li>🎨 5 RETRO CRT DISPLAY MONITOR COLOR THEMES</li>
+              <li>📟 SUMMARIZATION, FLASHCARDS, & ASK AI Drawer</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Actions / Blinking cursor link */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-t border-[#33ff33]/40 pt-6">
+          <span className="text-xs text-gray-500 font-mono tracking-widest flex items-center gap-1.5">
+            READY TO LOAD SYSTEM
+            <span className="inline-block w-2.5 h-4 bg-[#33ff33] animate-pulse"></span>
+          </span>
+          <div className="flex gap-4">
             <Link
               href="/login"
-              className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white border border-gray-850 rounded-full transition-colors text-sm"
+              className="retro-button border-4 text-sm font-bold uppercase tracking-wider px-6 py-2.5 hover:bg-[#33ff33] hover:text-black transition-all"
             >
-              Sign In
-            </Link>
-            <Link
-              href="/login"
-              className="px-6 py-2 bg-white hover:bg-gray-200 text-gray-950 font-medium rounded-full transition-colors text-sm shadow-md"
-            >
-              Start Writing
+              LAUNCH LOGIN MODULE ▶
             </Link>
           </div>
-        )}
-      </header>
-
-      {/* Search Bar */}
-      <form method="GET" action="/" className="w-full max-w-2xl mb-6 flex gap-3">
-        <input
-          type="text"
-          name="search"
-          defaultValue={search}
-          placeholder="Search the Verse (by title, content, or author)..."
-          className="flex-1 p-3 bg-gray-900 border border-gray-800 rounded-full text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-700 transition-all font-light"
-        />
-        {type && type !== "All" && <input type="hidden" name="type" value={type} />}
-        <button
-          type="submit"
-          className="px-6 py-3 bg-white text-gray-950 text-sm font-semibold rounded-full hover:bg-gray-200 transition-colors shadow-md cursor-pointer"
-        >
-          Search
-        </button>
-        {search && (
-          <Link
-            href={type && type !== "All" ? `/?type=${type}` : "/"}
-            className="px-4 py-3 bg-gray-900 border border-gray-800 rounded-full text-xs text-gray-400 hover:text-white flex items-center transition-colors font-light"
-          >
-            Clear
-          </Link>
-        )}
-      </form>
-
-      {/* Category Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-6 mb-8 max-w-2xl w-full justify-start md:justify-center scrollbar-none">
-        {categories.map((cat) => {
-          const isActive = type === cat;
-          const query = { type: cat } as any;
-          if (search) query.search = search;
-          const queryString = new URLSearchParams(query).toString();
-
-          return (
-            <Link
-              key={cat}
-              href={`/?${queryString}`}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                isActive
-                  ? "bg-white text-gray-950 shadow-md scale-105"
-                  : "bg-gray-900/60 border border-gray-800 text-gray-400 hover:text-white hover:bg-gray-850"
-              }`}
-            >
-              {cat}
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="w-full max-w-2xl space-y-12">
-        {fetchError && (
-          <div className="p-4 bg-red-950/40 border border-red-900/50 rounded-lg text-center text-red-200 text-sm">
-            ⚠️ Could not connect to InkVerse service. Please verify the backend is running.
-          </div>
-        )}
-
-        {!fetchError && posts.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-gray-800 rounded-lg">
-            <p className="text-gray-500 mb-4 font-light">The Verse is quiet. No matching whispers found.</p>
-            <Link
-              href={session?.user ? "/write" : "/login"}
-              className="inline-block px-5 py-2 bg-gray-900 hover:bg-gray-800 text-gray-200 border border-gray-800 rounded-full transition-all text-xs"
-            >
-              🖊️ Pen a new work
-            </Link>
-          </div>
-        ) : (
-          posts.map((post: any) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              token={token || ""}
-              isLoggedIn={!!session}
-            />
-          ))
-        )}
-
-        <div className="text-center mt-16 pt-8 border-t border-gray-900">
-          <p className="text-gray-500 text-sm italic font-light">Scroll softly, read deeply.</p>
         </div>
       </div>
     </main>

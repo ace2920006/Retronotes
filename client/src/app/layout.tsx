@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Merriweather } from "next/font/google";
 import "./globals.css";
 import Chatbox from "@/components/Chatbox";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const merriweather = Merriweather({
-  variable: "--font-merriweather",
-  weight: ["300", "400", "700", "900"],
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "InkVerse",
-  description: "Where Stories Meet Souls - A social home for poets, novelists, storytellers, and dreamers.",
+  title: "RetroNotes — Rebuilding the Past",
+  description: "A modern note-taking application with a retro-inspired CRT UI.",
 };
 
 export default function RootLayout({
@@ -25,11 +13,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${merriweather.variable} h-full antialiased dark`}
-    >
-      <body className="min-h-full flex flex-col bg-gray-950 text-gray-200 font-sans">
+    <html lang="en" className="h-full">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('retronotes-theme') || 'green';
+                document.documentElement.setAttribute('data-theme', theme);
+                const crt = localStorage.getItem('retronotes-crt') !== 'false';
+                if (crt) {
+                  document.documentElement.classList.add('crt-effect');
+                  document.documentElement.classList.add('crt-flicker');
+                } else {
+                  document.documentElement.classList.remove('crt-effect');
+                  document.documentElement.classList.remove('crt-flicker');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col font-mono antialiased overflow-x-hidden">
         {children}
         <Chatbox />
       </body>
