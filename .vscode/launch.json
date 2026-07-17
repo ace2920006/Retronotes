@@ -6,7 +6,7 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "npm run dev",
-      "cwd": "${workspaceFolder}/inkverse-frontend",
+      "cwd": "${workspaceFolder}/client",
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
         "uriFormat": "%s",
@@ -17,7 +17,7 @@
       "name": "Debug NestJS (Backend)",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/inkverse-backend",
+      "cwd": "${workspaceFolder}/server",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:debug"],
       "console": "integratedTerminal",
