@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  notes         Note[]
+  folders       Folder[]
+  tags          Tag[]
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?  // custom color styling (e.g. hex or tailwind class)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     Note[]
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     Note[]   // Implicit many-to-many
+}
+
+model Note {
+  id         String   @id @default(uuid())
+  title      String
+  content    String
+  isPinned   Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  isTrashed  Boolean  @default(false)
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId   String?
+  folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags       Tag[]    // Implicit many-to-many
+}
