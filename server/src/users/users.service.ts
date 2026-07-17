@@ -18,74 +18,78 @@ export class UsersService {
     });
   }
 
-  async getProfile(id: string, currentUserId?: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        followers: true,
-        following: true,
-      },
-    });
-
-    if (!user) return null;
-
-    const followersCount = user.followers.length;
-    const followingCount = user.following.length;
-    const isFollowing = currentUserId
-      ? user.followers.some((f) => f.followerId === currentUserId)
-      : false;
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      bio: user.bio,
-      songUrl: user.songUrl,
-      image: user.image,
-      createdAt: user.createdAt,
-      followersCount,
-      followingCount,
-      isFollowing,
-    };
-  }
-
   async create(data: { email: string; name?: string; password?: string }): Promise<User> {
     return this.prisma.user.create({
       data,
     });
   }
 
-  async update(id: string, data: { name?: string; bio?: string; image?: string; songUrl?: string | null }): Promise<User> {
+  async update(id: string, data: { name?: string; image?: string }): Promise<User> {
     return this.prisma.user.update({
       where: { id },
       data,
     });
   }
 
-  async getFeatured(currentUserId?: string) {
-    const users = await this.prisma.user.findMany({
-      include: {
-        followers: true,
+  async getDashboardStats(userId: string) {
+    // 1. Get notes by status
+    const allNotes = await this.prisma.note.findMany({
+      where: { userId },
+      select: {
+        isPinned: true,
+        isArchived: true,
+        isTrashed: true,
+        isFavorite: true,
+        content: true,
       },
     });
 
-    const mapped = users
-      .filter((user) => user.id !== currentUserId)
-      .map((user) => {
-        const followersCount = user.followers.length;
-        const isFollowing = currentUserId
-          ? user.followers.some((f) => f.followerId === currentUserId)
-          : false;
-        return {
-          id: user.id,
-          name: user.name,
-          bio: user.bio,
-          image: user.image,
-          followersCount,
-          isFollowing,
-        };
+    const totalNotes = allNotes.filter((n) => !n.isTrashed).length;
+    const pinnedCount = allNotes.filter((n) => n.isPinned && !n.isTrashed && !n.isArchived).length;
+    const archivedCount = allNotes.filter((n) => n.isArchived && !n.isTrashed).length;
+    const trashedCount = allNotes.filter((n) => n.isTrashed).length;
+    const favoriteCount = allNotes.filter((n) => n.isFavorite && !n.isTrashed && !n.isArchived).length;
+
+    // 2. Count folders and tags
+    const foldersCount = await this.prisma.folder.count({ where: { userId } });
+    const tagsCount = await this.prisma.tag.count({ where: { userId } });
+
+    // 3. Folder stats breakdown
+    const folders = await this.prisma.folder.findMany({
+      where: { userId },
+      include: {
+        _count: {
+          select: { notes: { where: { isTrashed: false } } },
+        },
+      },
+    });
+
+    const folderStats = folders.map((f) => ({
+      folderId: f.id,
+      folderName: f.name,
+      color: f.color,
+      noteCount: f._count.notes,
+    }));
+
+    // 4. Calculate total word count (excluding trashed notes)
+    let totalWordCount = 0;
+    allNotes
+      .filter((n) => !n.isTrashed)
+      .forEach((n) => {
+        const words = n.content.trim().split(/\s+/).filter(Boolean);
+        totalWordCount += words.length;
       });
 
-    return mapped.sort((a, b) => b.followersCount - a.followersCount).slice(0, 5);
+    return {
+      totalNotes,
+      pinnedCount,
+      archivedCount,
+      trashedCount,
+      favoriteCount,
+      foldersCount,
+      tagsCount,
+      totalWordCount,
+      folderStats,
+    };
   }
 }

@@ -1,54 +1,284 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=VT323&family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Default: Green Terminal Theme */
+  --bg-color: #071407;
+  --fg-color: #33ff33;
+  --fg-glow: 0 0 8px rgba(51, 255, 51, 0.7);
+  --border-color: #1b4d1b;
+  --border-glow: 0 0 6px rgba(27, 77, 27, 0.6);
+  --accent-color: #66ff66;
+  --panel-bg: #0b220b;
+  --crt-scanline-opacity: 0.15;
+  --crt-flicker: 0.15s;
+  
+  --font-family-title: 'VT323', monospace;
+  --font-family-body: 'Courier Prime', monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Amber Theme */
+[data-theme='amber'] {
+  --bg-color: #120900;
+  --fg-color: #ffb000;
+  --fg-glow: 0 0 8px rgba(255, 176, 0, 0.7);
+  --border-color: #592e00;
+  --border-glow: 0 0 6px rgba(89, 46, 0, 0.6);
+  --accent-color: #ffcc00;
+  --panel-bg: #221100;
+  --crt-scanline-opacity: 0.18;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Windows 95 Theme */
+[data-theme='win95'] {
+  --bg-color: #008080;
+  --fg-color: #000000;
+  --fg-glow: none;
+  --border-color: #808080;
+  --border-glow: none;
+  --accent-color: #000080;
+  --panel-bg: #c0c0c0;
+  --crt-scanline-opacity: 0.0;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: Arial, Helvetica, sans-serif;
+}
+
+/* Cyberpunk Theme */
+[data-theme='cyberpunk'] {
+  --bg-color: #0d0015;
+  --fg-color: #00ffff;
+  --fg-glow: 0 0 8px rgba(0, 255, 255, 0.8);
+  --border-color: #ff007f;
+  --border-glow: 0 0 8px rgba(255, 0, 127, 0.8);
+  --accent-color: #ffff00;
+  --panel-bg: #1d0032;
+  --crt-scanline-opacity: 0.22;
+  --font-family-title: 'Press Start 2P', monospace;
+  --font-family-body: 'Share Tech Mono', monospace;
+}
+
+/* Slate Dark Theme */
+[data-theme='slate'] {
+  --bg-color: #0f172a;
+  --fg-color: #f8fafc;
+  --fg-glow: none;
+  --border-color: #334155;
+  --border-glow: none;
+  --accent-color: #38bdf8;
+  --panel-bg: #1e293b;
+  --crt-scanline-opacity: 0.05;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: 'Courier Prime', monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--fg-color);
+  font-family: var(--font-family-body);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-@keyframes heartPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -50%) rotate(-15deg);
-  }
-  15% {
-    opacity: 0.9;
-    transform: scale(1.2) translate(-50%, -50%) rotate(5deg);
-  }
-  30% {
-    transform: scale(0.9) translate(-50%, -50%) rotate(-5deg);
-  }
-  80% {
-    opacity: 0.9;
-    transform: scale(1) translate(-50%, -50%) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.4) translate(-50%, -50%) rotate(15deg);
-    opacity: 0;
-  }
+h1, h2, h3, h4, h5, h6, .retro-title {
+  font-family: var(--font-family-title);
+  text-shadow: var(--fg-glow);
 }
 
-.animate-heart-pop {
-  animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+/* CRT Screen Scanline Overlay & Glass Curve */
+.crt-container {
+  position: relative;
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
+.crt-effect::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.3) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--crt-scanline-opacity);
+}
+
+/* Flicker Animation for Phosphor Simulation */
+@keyframes crt-flicker {
+  0% { opacity: 0.985; }
+  50% { opacity: 1; }
+  100% { opacity: 0.99; }
+}
+
+.crt-flicker {
+  animation: crt-flicker var(--crt-flicker) infinite;
+}
+
+/* Retro Borders & Boxes */
+.retro-border {
+  border: 2px solid var(--border-color);
+  box-shadow: var(--border-glow);
+}
+
+.retro-button {
+  background-color: var(--bg-color);
+  color: var(--fg-color);
+  border: 2px solid var(--border-color);
+  text-shadow: var(--fg-glow);
+  box-shadow: var(--border-glow);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.retro-button:hover {
+  background-color: var(--border-color);
+  color: var(--bg-color);
+}
+
+.retro-button:active {
+  transform: translate(2px, 2px);
+}
+
+/* Windows 95 Style Border overrides */
+[data-theme='win95'] .retro-border {
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #808080;
+}
+
+[data-theme='win95'] .retro-button {
+  background-color: #c0c0c0;
+  color: #000000;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  box-shadow: none;
+}
+
+[data-theme='win95'] .retro-button:hover {
+  background-color: #d8d8d8;
+  color: #000000;
+}
+
+[data-theme='win95'] .retro-button:active {
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: none;
+}
+
+/* Cassette tape spinning save animations */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-retro {
+  animation: spin 2s linear infinite;
+}
+
+/* Scanline screen static */
+@keyframes static-noise {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-100%); }
+}
+.crt-static {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 200%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  animation: static-noise 4s linear infinite;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.3;
+}
+
+/* Glow styles for text */
+.text-glow {
+  text-shadow: var(--fg-glow);
+}
+
+.border-glow {
+  box-shadow: var(--border-glow);
+}
+
+/* Scrollbar Customization for Retro Look */
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-left: 2px solid var(--border-color);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border: 2px solid var(--bg-color);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-color);
+}
+
+/* Markdown parsing custom styles */
+.markdown-preview h1 {
+  font-size: 2.25rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+.markdown-preview h2 {
+  font-size: 1.8rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+.markdown-preview h3 {
+  font-size: 1.4rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.markdown-preview p {
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+.markdown-preview ul, .markdown-preview ol {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.markdown-preview ul {
+  list-style-type: square;
+}
+.markdown-preview ol {
+  list-style-type: decimal;
+}
+.markdown-preview code {
+  background-color: var(--panel-bg);
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9em;
+  border: 1px solid var(--border-color);
+}
+.markdown-preview pre {
+  background-color: var(--panel-bg);
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+.markdown-preview pre code {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+}

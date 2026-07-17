@@ -1,52 +1,42 @@
 import { Controller, Get, Patch, Body, Param, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
-  private extractUserId(req: any): string | undefined {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
-      try {
-        const payload = this.jwtService.verify(token, {
-          secret: process.env.JWT_SECRET || 'secret_inkverse_2026',
-        });
-        return payload.sub;
-      } catch (e) {
-        // Token invalid/expired
-      }
-    }
-    return undefined;
+  @Get('dashboard')
+  async getDashboard(@Request() req: any) {
+    return this.usersService.getDashboardStats(req.user.id);
   }
 
-  @Get('featured')
-  async getFeatured(@Request() req: any) {
-    const currentUserId = this.extractUserId(req);
-    return this.usersService.getFeatured(currentUserId);
+  @Get('me')
+  async getMe(@Request() req: any) {
+    const user = await this.usersService.findOneById(req.user.id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    // Omit password
+    const { password, ...rest } = user as any;
+    return rest;
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Request() req: any) {
-    const currentUserId = this.extractUserId(req);
-    const profile = await this.usersService.getProfile(id, currentUserId);
-    if (!profile) {
+  async findOne(@Param('id') id: string) {
+    const user = await this.usersService.findOneById(id);
+    if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return profile;
+    const { password, ...rest } = user as any;
+    return rest;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: { name?: string; bio?: string; image?: string; songUrl?: string | null },
+    @Body() body: { name?: string; image?: string },
     @Request() req: any,
   ) {
     // Only allow updating own profile
