@@ -42,6 +42,8 @@ model Tag {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes     Note[]   // Implicit many-to-many
+
+  @@unique([name, userId])
 }
 
 model Note {
