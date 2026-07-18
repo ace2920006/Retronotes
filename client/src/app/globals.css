@@ -71,6 +71,35 @@
   --font-family-body: 'Courier Prime', monospace;
 }
 
+/* Sunset / Synthwave Theme */
+[data-theme='sunset'] {
+  --bg-color: #150624;
+  --fg-color: #ff33a3;
+  --fg-glow: 0 0 8px rgba(255, 51, 163, 0.8), 0 0 2px rgba(255, 126, 0, 0.8);
+  --border-color: #00ffff;
+  --border-glow: 0 0 6px rgba(0, 255, 255, 0.6);
+  --accent-color: #ffb800;
+  --panel-bg: #2d0b47;
+  --crt-scanline-opacity: 0.2;
+  --font-family-title: 'VT323', monospace;
+  --font-family-body: 'Share Tech Mono', monospace;
+}
+
+/* Commodore 64 Theme */
+[data-theme='c64'] {
+  --bg-color: #3c3c9c;
+  --fg-color: #a4a4ff;
+  --fg-glow: none;
+  --border-color: #a4a4ff;
+  --border-glow: none;
+  --accent-color: #ffffff;
+  --panel-bg: #1c1c7c;
+  --crt-scanline-opacity: 0.15;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: 'Share Tech Mono', monospace;
+}
+
+
 body {
   background-color: var(--bg-color);
   color: var(--fg-color);
