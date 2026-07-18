@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { playKeyClick, playSpacebar, playToggleBeep } from "@/lib/retroAudio";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,7 +13,7 @@ export default function Chatbox() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "### ✨ Welcome, Fellow Dreamer!\n\nI am the **InkVerse Muse**, your creative writing companion. Whether you need a spark of inspiration, a rhyming pair, or a quick critique, I am here.\n\nTry clicking one of the quick suggestions below, or write your own message!",
+      content: "### 📟 RETRO-MUSE 9000 ONLINE\n\nI am the **RetroNotes OS Co-Processor**, your creative note assistant. Ask me to brainstorm ideas, format markdown structures, suggest tags, or draft summaries!\n\nTry clicking one of the quick suggestions below, or write your own message!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -25,10 +26,10 @@ export default function Chatbox() {
   }, [messages, isLoading]);
 
   const quickPrompts = [
-    { label: "🌸 Haiku", text: "Write a haiku about a starry night" },
-    { label: "🖊️ Poetry Prompt", text: "Give me a prompt for a poetry piece" },
-    { label: "🎵 Rhyme Help", text: "What are some words that rhyme with 'silence'?" },
-    { label: "🧐 Writing Critique", text: "Can you give me feedback on my writing? Here is a stanza: \n\n'The shadow falls across the floor,\nAnd whispers knock upon the door.'" },
+    { label: "💡 Note Idea", text: "Brainstorm 3 note ideas for a clean code checklist" },
+    { label: "📝 Outline Format", text: "Create a neat outline template for study notes" },
+    { label: "🏷️ Tag Helper", text: "Suggest some tags for a note about database security" },
+    { label: "🔬 Code Template", text: "Show me a nice markdown example for code blocks" },
   ];
 
   const handleSend = async (textToSend: string) => {
@@ -214,33 +215,26 @@ export default function Chatbox() {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 w-[340px] sm:w-[380px] h-[480px] bg-gray-950/90 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+        <div className="mb-4 w-[340px] sm:w-[380px] h-[480px] bg-[var(--panel-bg)]/95 border-2 border-[var(--border-color)] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-5 font-mono screen-glare">
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-gray-900 to-gray-950 border-b border-gray-850 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+          <div className="px-4 py-3 bg-[var(--bg-color)] border-b-2 border-[var(--border-color)] flex justify-between items-center text-glow">
+            <div className="flex items-center gap-2 select-none">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-color)] animate-pulse" />
               <div>
-                <h3 className="text-sm font-semibold font-serif text-white tracking-wide">
-                  InkVerse Muse
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--fg-color)]">
+                  CO-PROCESSOR 9000
                 </h3>
-                <p className="text-[10px] text-gray-500">Creative Companion</p>
+                <p className="text-[9px] text-[var(--fg-color)]/60 uppercase">RETRO-MUSE SUB-SYSTEM</p>
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-white hover:bg-gray-900 p-1.5 rounded-lg transition-colors cursor-pointer"
+              onClick={() => {
+                playToggleBeep();
+                setIsOpen(false);
+              }}
+              className="text-[var(--fg-color)]/70 hover:text-[var(--fg-color)] border border-[var(--border-color)] px-1.5 py-0.5 text-[9px] font-bold cursor-pointer"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              [ESC] CLOSE
             </button>
           </div>
 
@@ -254,16 +248,19 @@ export default function Chatbox() {
                   className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs shadow-sm ${
+                    className={`max-w-[85%] border px-3.5 py-2.5 text-xs shadow-sm rounded-none font-mono ${
                       isUser
-                        ? "bg-white text-gray-950 rounded-br-none"
-                        : "bg-gray-900/90 border border-gray-850 text-gray-300 rounded-bl-none"
+                        ? "bg-[var(--panel-bg)]/80 border-[var(--border-color)] text-[var(--fg-color)]/90"
+                        : "bg-[var(--bg-color)]/30 border-[var(--border-color)]/40 text-[var(--fg-color)] text-glow"
                     }`}
                   >
+                    <p className="text-[9px] text-[var(--fg-color)]/40 uppercase mb-1 font-bold select-none">
+                      {isUser ? "USER CMD" : "CO-PROC RESP"}
+                    </p>
                     {isUser ? (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                      <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     ) : (
-                      formatMessageContent(msg.content)
+                      <div className="leading-relaxed">{formatMessageContent(msg.content)}</div>
                     )}
                   </div>
                 </div>
@@ -273,13 +270,8 @@ export default function Chatbox() {
             {/* Loading / Typing indicator */}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-900/95 border border-gray-850 rounded-2xl rounded-bl-none px-3.5 py-3 text-xs text-gray-400 flex items-center gap-2 shadow-sm">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                  <span className="italic text-[10px] text-gray-500">The Muse is writing...</span>
+                <div className="bg-[var(--bg-color)]/40 border border-[var(--border-color)]/40 rounded-none px-3.5 py-3 text-xs text-[var(--fg-color)]/70 flex items-center gap-2 shadow-sm font-mono text-glow animate-pulse select-none">
+                  <span>> PROCESSING CO-PROCESSOR REQUEST SECTOR...</span>
                 </div>
               </div>
             )}
@@ -288,14 +280,17 @@ export default function Chatbox() {
 
           {/* Quick Prompts */}
           {messages.length === 1 && !isLoading && (
-            <div className="px-4 py-2 border-t border-gray-900/60 bg-gray-950/40">
-              <p className="text-[10px] text-gray-500 mb-1.5">Suggestions:</p>
+            <div className="px-4 py-2 border-t border-[var(--border-color)] bg-[var(--bg-color)]/60 select-none">
+              <p className="text-[9px] text-[var(--fg-color)]/40 uppercase mb-1.5 font-bold">Suggestions:</p>
               <div className="flex flex-wrap gap-1.5">
                 {quickPrompts.map((prompt, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleSend(prompt.text)}
-                    className="text-[10px] px-2.5 py-1 rounded-full bg-gray-900 border border-gray-850 text-gray-400 hover:text-white hover:bg-gray-850 hover:border-gray-700 transition-all cursor-pointer"
+                    onClick={() => {
+                      playToggleBeep();
+                      handleSend(prompt.text);
+                    }}
+                    className="text-[10px] px-2.5 py-1 bg-[var(--bg-color)] border border-[var(--border-color)]/60 text-[var(--fg-color)]/80 hover:text-[var(--fg-color)] hover:bg-[var(--panel-bg)] hover:border-[var(--accent-color)] transition-all cursor-pointer rounded-none font-mono text-glow"
                   >
                     {prompt.label}
                   </button>
@@ -310,32 +305,30 @@ export default function Chatbox() {
               e.preventDefault();
               handleSend(input);
             }}
-            className="p-3 bg-gray-950 border-t border-gray-900 flex gap-2"
+            className="p-3 bg-[var(--bg-color)] border-t border-[var(--border-color)] flex gap-2"
           >
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask the Muse for prompts or feedback..."
+              onChange={(e) => {
+                setInput(e.target.value);
+                const lastChar = e.target.value[e.target.value.length - 1];
+                if (lastChar === " " || lastChar === "\n") {
+                  playSpacebar();
+                } else {
+                  playKeyClick();
+                }
+              }}
+              placeholder="Ask the Co-Processor for suggestions..."
               disabled={isLoading}
-              className="flex-1 px-3 py-2 bg-gray-900 border border-gray-850 rounded-xl text-xs text-gray-200 placeholder-gray-550 focus:outline-none focus:border-gray-700 disabled:opacity-50 font-light"
+              className="flex-1 px-3 py-2 bg-[var(--bg-color)] border border-[var(--border-color)] text-xs text-[var(--fg-color)] placeholder-[var(--border-color)]/45 focus:outline-none focus:border-[var(--accent-color)] disabled:opacity-50 font-mono text-glow"
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="p-2 bg-white hover:bg-gray-200 disabled:bg-gray-800 disabled:text-gray-600 text-gray-950 rounded-xl transition-all cursor-pointer flex items-center justify-center"
+              className="retro-button px-3 uppercase text-xs font-bold text-glow"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+              SEND
             </button>
           </form>
         </div>
@@ -343,23 +336,17 @@ export default function Chatbox() {
 
       {/* Floating Toggle Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-white hover:bg-gray-200 hover:scale-105 active:scale-95 text-gray-950 rounded-full flex items-center justify-center shadow-xl border border-gray-200/10 transition-all cursor-pointer group"
+        onClick={() => {
+          playToggleBeep();
+          setIsOpen(!isOpen);
+        }}
+        className="w-12 h-12 bg-[var(--bg-color)] hover:bg-[var(--panel-bg)] text-[var(--fg-color)] rounded-none flex items-center justify-center shadow-xl border-2 border-[var(--border-color)] transition-all cursor-pointer group text-glow"
+        title="Toggle AI Co-Processor Console"
       >
         {isOpen ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          <span className="font-mono font-bold text-xs uppercase">[X]</span>
         ) : (
-          <span className="text-lg group-hover:animate-bounce">✨</span>
+          <span className="text-lg group-hover:scale-110 transition-transform">📟</span>
         )}
       </button>
     </div>
