@@ -134,31 +134,86 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   // --- BOOT SEQUENCE ANIMATION ---
   useEffect(() => {
+    // Play BIOS beep on load
+    playBootBeep();
+
+    const logo = [
+      "┌────────────────────────────────────────────────────────┐",
+      "│  ____  _____ _____ ____   ___  _   _  ___ _____ _____  │",
+      "│ |  _ \\| ____|_   _|  _ \\ / _ \\| \\ | |/ _ \\_   _| ____| │",
+      "│ | |_) |  _|   | | | |_) | | | |  \\| | | | || | |  _|   │",
+      "│ |  _ <| |___  | | |  _ <| |_| | |\\  | |_| || | | |___  │",
+      "│ |_| \\_\\_____| |_| |_| \\_\\\\___/|_| \\_\\___/ |_| |_____| │",
+      "└────────────────────────────────────────────────────────┘"
+    ];
+
     const lines = [
       "RETRO-BIOS v4.10, Copyright (C) 1983-2026 RetroCorp.",
       "CPU: GEMINI 2.5 FLASH PRO @ 4.20 GHz",
-      "RAM: 640 KB BASE MEMORY TEST - OK",
-      "DISK: DRIVE A: (SQLITE DEVDB) DETECTED - SECTOR 0 OK",
+      "CO-PROCESSOR: RETRO-MUSE 9000 ONLINE",
+      "SOUND: SYNTHESIZED WEB-AUDIO DRIVER v1.0",
+      "DISK: DRIVE A: (SQLITE DEVDB) SECTOR 0 - OK",
       "NETWORK: SYNC PROTOCOL STABLE (HTTP/JSON)",
       "AUTHENTICATING USER: " + user.name.toUpperCase(),
       "ACCESS GRANTED. INITIALIZING RETRONOTES OS...",
       "SYSTEM ONLINE. READY."
     ];
 
-    let currentLine = 0;
-    const interval = setInterval(() => {
-      if (currentLine < lines.length) {
-        setBootLines((prev) => [...prev, lines[currentLine]]);
-        currentLine++;
-      } else {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsBooting(false);
-        }, 800);
-      }
-    }, 200);
+    let currentLogoLine = 0;
+    let logoTimer: NodeJS.Timeout;
+    let memInterval: NodeJS.Timeout;
+    let restInterval: NodeJS.Timeout;
 
-    return () => clearInterval(interval);
+    const showLogo = () => {
+      if (currentLogoLine < logo.length) {
+        setBootLines((prev) => [...prev, logo[currentLogoLine]]);
+        currentLogoLine++;
+        logoTimer = setTimeout(showLogo, 70);
+      } else {
+        // Logo done, do memory check
+        setBootLines((prev) => [...prev, "", "TESTING CONVENTIONAL BASE MEMORY..."]);
+        let mem = 0;
+        memInterval = setInterval(() => {
+          mem += 64;
+          if (mem <= 640) {
+            setBootLines((prev) => {
+              const next = [...prev];
+              if (next[next.length - 1].startsWith("MEM CHECK:")) {
+                next[next.length - 1] = `MEM CHECK: [ ${mem} KB ] OK`;
+              } else {
+                next.push(`MEM CHECK: [ ${mem} KB ] OK`);
+              }
+              return next;
+            });
+            playKeyClick(2.2);
+          } else {
+            clearInterval(memInterval);
+            setBootLines((prev) => [...prev, ""]);
+            let restIdx = 0;
+            restInterval = setInterval(() => {
+              if (restIdx < lines.length) {
+                setBootLines((prev) => [...prev, lines[restIdx]]);
+                playKeyClick(1.4);
+                restIdx++;
+              } else {
+                clearInterval(restInterval);
+                setTimeout(() => {
+                  setIsBooting(false);
+                }, 800);
+              }
+            }, 150);
+          }
+        }, 80);
+      }
+    };
+
+    logoTimer = setTimeout(showLogo, 100);
+
+    return () => {
+      clearTimeout(logoTimer);
+      clearInterval(memInterval);
+      clearInterval(restInterval);
+    };
   }, [user.name]);
 
   // --- LOCAL STORAGE CONFIGS LOAD ---
@@ -166,8 +221,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     if (typeof window !== "undefined") {
       const savedTheme = localStorage.getItem("retronotes-theme") || "green";
       const savedCrt = localStorage.getItem("retronotes-crt") !== "false";
+      const savedSound = localStorage.getItem("retronotes-sounds") !== "false";
       setTheme(savedTheme);
       setCrtEnabled(savedCrt);
+      setSoundOn(savedSound);
       document.documentElement.setAttribute("data-theme", savedTheme);
       if (savedCrt) {
         document.documentElement.classList.add("crt-effect", "crt-flicker");
