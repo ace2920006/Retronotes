@@ -305,12 +305,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   // --- THEME MUTATIONS ---
   const toggleTheme = (newTheme: string) => {
+    playToggleBeep();
     setTheme(newTheme);
     localStorage.setItem("retronotes-theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   const toggleCrt = () => {
+    playToggleBeep();
     const nextCrt = !crtEnabled;
     setCrtEnabled(nextCrt);
     localStorage.setItem("retronotes-crt", String(nextCrt));
@@ -358,6 +360,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const saveNote = async () => {
     if (!selectedNote) return;
 
+    playFloppySave();
     setIsSaving(true);
     setSaveMessage("SAVING TO SECTOR 4...");
 
@@ -594,8 +597,15 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // --- KEYBOARD SHORTCUTS ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts during boot
-      if (isBooting) return;
+      // Allow escaping the boot sequence
+      if (isBooting) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          playToggleBeep();
+          setIsBooting(false);
+        }
+        return;
+      }
 
       // Ctrl + S (Save)
       if (e.ctrlKey && e.key === "s") {
@@ -777,16 +787,27 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // --- BOOT SCREEN COMPONENT ---
   if (isBooting) {
     return (
-      <div className="fixed inset-0 bg-[#071407] text-[#33ff33] font-mono p-8 z-50 overflow-hidden select-none crt-effect">
+      <div className="fixed inset-0 bg-[#071407] text-[#33ff33] font-mono p-8 z-50 overflow-y-auto select-none crt-effect">
         <div className="max-w-3xl mx-auto space-y-2 text-glow">
-          <div className="border border-[#1b4d1b] p-4 mb-4">
-            <h1 className="text-2xl font-bold">RETRO-BIOS v4.10</h1>
-            <p>CRTC: AMD 4016 CONTROLLER (MONOCHROME CAPABLE)</p>
-            <p>SYSTEM ROM DATED 07/17/1983</p>
+          <div className="border border-[#1b4d1b] p-4 mb-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold">RETRO-BIOS v4.10</h1>
+              <p className="text-xs">CRTC: AMD 4016 CONTROLLER (MONOCHROME CAPABLE)</p>
+              <p className="text-xs">SYSTEM ROM DATED 07/17/1983</p>
+            </div>
+            <button
+              onClick={() => {
+                playToggleBeep();
+                setIsBooting(false);
+              }}
+              className="retro-button px-3 py-1.5 text-xs uppercase font-bold border-red-700 text-red-500 hover:bg-red-950/40"
+            >
+              [ESC] SKIP BOOT
+            </button>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 font-mono">
             {bootLines.map((line, idx) => (
-              <p key={idx} className="leading-5">{`> ${line}`}</p>
+              <p key={idx} className="leading-5 min-h-[1.25rem] whitespace-pre">{line}</p>
             ))}
           </div>
           <div className="inline-block w-3 h-5 bg-[#33ff33] animate-pulse mt-4"></div>
@@ -871,7 +892,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               <span className="text-[10px] uppercase font-bold text-gray-500 mr-1 select-none">
                 Theme:
               </span>
-              {(['green', 'amber', 'win95', 'cyberpunk', 'slate'] as string[]).map((t) => (
+              {(['green', 'amber', 'win95', 'cyberpunk', 'slate', 'sunset', 'c64'] as string[]).map((t) => (
                 <button
                   key={t}
                   onClick={() => toggleTheme(t)}
@@ -884,7 +905,11 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                       ? 'bg-teal-700'
                       : t === 'cyberpunk'
                       ? 'bg-pink-600'
-                      : 'bg-slate-600'
+                      : t === 'slate'
+                      ? 'bg-slate-600'
+                      : t === 'sunset'
+                      ? 'bg-fuchsia-500'
+                      : 'bg-blue-600'
                   } ${theme === t ? 'outline-2 outline-offset-1 outline-[var(--accent-color)]' : ''}`}
                   title={`${t.toUpperCase()} MONITOR`}
                 />
@@ -900,6 +925,22 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               title="Toggle scanline monitor curvature effect"
             >
               CRT SCREEN: {crtEnabled ? 'ON' : 'OFF'}
+            </button>
+
+            {/* Toggle Audio */}
+            <button
+              onClick={() => {
+                const nextSound = !soundOn;
+                setSoundOn(nextSound);
+                setSoundEnabled(nextSound);
+                playToggleBeep();
+              }}
+              className={`retro-button px-2 py-1 text-[10px] font-mono ${
+                soundOn ? 'bg-[var(--border-color)] text-[var(--bg-color)]' : ''
+              }`}
+              title="Toggle retro interface typing and save sound effects"
+            >
+              AUDIO: {soundOn ? 'ON' : 'OFF'}
             </button>
 
             <button
@@ -1194,6 +1235,17 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             <section className="flex-1 flex flex-col max-h-full overflow-hidden relative">
               {selectedNote ? (
                 <div className="flex-1 flex flex-col overflow-hidden">
+                  {/* Windows 95 Title Bar */}
+                  <div className="win95-window-title select-none">
+                    <span className="flex items-center gap-1.5 font-bold font-sans">
+                      📝 {selectedNote.id === "new-note-temp" ? "notepad.exe - Untitled" : `notepad.exe - ${selectedNote.title || "Untitled"}`}
+                    </span>
+                    <div className="flex items-center gap-0.5">
+                      <button className="w-4 h-4 bg-[#c0c0c0] border border-white border-b-gray-800 border-r-gray-800 flex items-center justify-center text-black text-[9px] font-sans hover:bg-gray-100" style={{ boxShadow: "inset 1px 1px 0px #fff, inset -1px -1px 0px #808080" }}>?</button>
+                      <button className="w-4 h-4 bg-[#c0c0c0] border border-white border-b-gray-800 border-r-gray-800 flex items-center justify-center text-black text-[9px] font-sans hover:bg-gray-100" style={{ boxShadow: "inset 1px 1px 0px #fff, inset -1px -1px 0px #808080" }}>_</button>
+                      <button onClick={() => setSelectedNote(null)} className="w-4 h-4 bg-[#c0c0c0] border border-white border-b-gray-800 border-r-gray-800 flex items-center justify-center text-black text-[9px] font-sans font-bold hover:bg-gray-100" style={{ boxShadow: "inset 1px 1px 0px #fff, inset -1px -1px 0px #808080" }}>X</button>
+                    </div>
+                  </div>
                   
                   {/* Editor Header Bar (Toolbar) */}
                   <div className="p-3 border-b-2 border-[var(--border-color)] bg-[var(--panel-bg)] flex justify-between items-center select-none z-10 flex-wrap gap-2 text-xs">
@@ -1308,13 +1360,25 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         type="text"
                         placeholder="Note Title"
                         value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
+                        onChange={(e) => {
+                          setEditTitle(e.target.value);
+                          playKeyClick();
+                        }}
                         className="w-full bg-transparent border-b-2 border-[var(--border-color)]/40 text-xl font-bold py-2 mb-4 text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] text-glow font-mono"
                       />
                       <textarea
                         placeholder="Type note content in Markdown format... Use Ctrl+S to save."
                         value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
+                        onChange={(e) => {
+                          setEditContent(e.target.value);
+                          const val = e.target.value;
+                          const lastChar = val[val.length - 1];
+                          if (lastChar === " " || lastChar === "\n") {
+                            playSpacebar();
+                          } else {
+                            playKeyClick();
+                          }
+                        }}
                         className="w-full flex-1 bg-transparent border-0 resize-none text-xs text-[var(--fg-color)] focus:outline-none focus:ring-0 font-mono leading-relaxed overflow-y-auto"
                       />
                     </div>
