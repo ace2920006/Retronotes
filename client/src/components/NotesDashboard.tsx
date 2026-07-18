@@ -11,6 +11,8 @@ import {
   isSoundEnabled,
   setSoundEnabled
 } from "@/lib/retroAudio";
+import CassettePlayer from "./CassettePlayer";
+
 
 interface Tag {
   id: string;
@@ -1095,7 +1097,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               </div>
 
               {/* Folders Navigation */}
-              <div className="p-3 border-b border-[var(--border-color)] flex-1 overflow-y-auto">
+              <div className="p-3 border-b border-[var(--border-color)] max-h-[150px] overflow-y-auto">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-gray-500 uppercase font-bold tracking-widest text-[10px]">Folders</p>
                   <button
@@ -1132,7 +1134,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               </div>
 
               {/* Tags Filter list */}
-              <div className="p-3 max-h-[160px] overflow-y-auto border-t border-[var(--border-color)]">
+              <div className="p-3 max-h-[130px] overflow-y-auto border-b border-[var(--border-color)]">
                 <p className="text-gray-500 uppercase font-bold tracking-widest text-[10px] mb-2">Tags</p>
                 <div className="flex flex-wrap gap-1">
                   {tags.map((t) => (
@@ -1154,6 +1156,11 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                     <p className="text-[10px] text-gray-500 italic">No tags registered.</p>
                   )}
                 </div>
+              </div>
+
+              {/* Lofi Cassette Deck Widget */}
+              <div className="p-3 mt-auto">
+                <CassettePlayer />
               </div>
             </aside>
 
