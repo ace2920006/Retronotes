@@ -307,7 +307,82 @@ h1, h2, h3, h4, h5, h6, .retro-title {
   margin-bottom: 0.75rem;
 }
 .markdown-preview pre code {
-  background-color: transparent;
-  padding: 0;
   border: none;
 }
+
+/* --- Retro UI Enhancements --- */
+
+/* Cassette Gear Spin Animation */
+@keyframes spin-cassette {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-spin-cassette {
+  animation: spin-cassette 4s linear infinite;
+}
+
+/* Screen Glare Sweep Animation */
+@keyframes glare-sweep {
+  0% { transform: translate(-100%, -100%) rotate(45deg); }
+  100% { transform: translate(100%, 100%) rotate(45deg); }
+}
+.screen-glare {
+  position: relative;
+  overflow: hidden;
+}
+.screen-glare::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 200%; height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 55%
+  );
+  pointer-events: none;
+  transform: translate(-100%, -100%) rotate(45deg);
+}
+.screen-glare:hover::before {
+  animation: glare-sweep 1.5s ease-in-out;
+}
+
+/* Blinking terminal text cursor */
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.terminal-cursor::after {
+  content: "█";
+  display: inline-block;
+  margin-left: 4px;
+  animation: cursor-blink 1s infinite;
+  color: var(--fg-color);
+  text-shadow: var(--fg-glow);
+}
+
+/* Windows 95 Window title bars and panel styling */
+.win95-window-title {
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: #ffffff;
+  padding: 3px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+}
+[data-theme='win95'] .win95-window-title {
+  display: flex;
+}
+/* By default, hide win95-window-title if not win95 theme */
+.win95-window-title {
+  display: none;
+}
+
+/* Commodore 64 border glow overrides */
+[data-theme='c64'] h1, [data-theme='c64'] h2, [data-theme='c64'] h3, [data-theme='c64'] .retro-title {
+  text-shadow: none;
+}
+
