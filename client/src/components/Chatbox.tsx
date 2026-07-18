@@ -271,7 +271,7 @@ export default function Chatbox() {
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-[var(--bg-color)]/40 border border-[var(--border-color)]/40 rounded-none px-3.5 py-3 text-xs text-[var(--fg-color)]/70 flex items-center gap-2 shadow-sm font-mono text-glow animate-pulse select-none">
-                  <span>> PROCESSING CO-PROCESSOR REQUEST SECTOR...</span>
+                  <span>&gt; PROCESSING CO-PROCESSOR REQUEST SECTOR...</span>
                 </div>
               </div>
             )}
