@@ -2,6 +2,15 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { fetchAPI } from "@/lib/api";
+import {
+  playKeyClick,
+  playSpacebar,
+  playFloppySave,
+  playBootBeep,
+  playToggleBeep,
+  isSoundEnabled,
+  setSoundEnabled
+} from "@/lib/retroAudio";
 
 interface Tag {
   id: string;
@@ -81,6 +90,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // Themes & Effects
   const [theme, setTheme] = useState<string>("green");
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
+  const [soundOn, setSoundOn] = useState<boolean>(true);
 
   // Status flags
   const [isOffline, setIsOffline] = useState(false);
