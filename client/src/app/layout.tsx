@@ -15,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <head>
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

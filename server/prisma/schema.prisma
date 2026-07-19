@@ -61,4 +61,5 @@ model Note {
   folderId   String?
   folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   tags       Tag[]    // Implicit many-to-many
+  color      String?
 }

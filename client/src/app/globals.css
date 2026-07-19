@@ -99,6 +99,33 @@
   --font-family-body: 'Share Tech Mono', monospace;
 }
 
+/* Light Theme */
+[data-theme='light'] {
+  --bg-color: #f3f4f6;
+  --fg-color: #1f2937;
+  --fg-glow: none;
+  --border-color: #9ca3af;
+  --border-glow: none;
+  --accent-color: #2563eb;
+  --panel-bg: #ffffff;
+  --crt-scanline-opacity: 0.02;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
+
+/* Dark Theme */
+[data-theme='dark'] {
+  --bg-color: #0c0a0f;
+  --fg-color: #e2e8f0;
+  --fg-glow: none;
+  --border-color: #4a5568;
+  --border-glow: none;
+  --accent-color: #3b82f6;
+  --panel-bg: #1a202c;
+  --crt-scanline-opacity: 0.05;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
 
 body {
   background-color: var(--bg-color);
@@ -385,4 +412,21 @@ h1, h2, h3, h4, h5, h6, .retro-title {
 [data-theme='c64'] h1, [data-theme='c64'] h2, [data-theme='c64'] h3, [data-theme='c64'] .retro-title {
   text-shadow: none;
 }
+
+/* Markdown Image & Link Styles */
+.markdown-preview img {
+  max-width: 100%;
+  height: auto;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--border-glow);
+  margin: 12px 0;
+  display: block;
+}
+
+.markdown-preview a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-shadow: var(--fg-glow);
+}
+
 

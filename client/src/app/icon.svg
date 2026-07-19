@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" style="image-rendering: pixelated;">
+  <!-- Outer border shadow -->
+  <path d="M 2 2 h 24 l 4 4 v 24 h -28 z" fill="#0f172a" />
+  <!-- Main Floppy Disk Body (Retro Blue) -->
+  <path d="M 3 3 h 22 l 4 4 v 22 h -26 z" fill="#2563eb" />
+  <!-- Accent highlights for 3D look -->
+  <path d="M 3 3 h 21 l 4 4 v 1 h -25 z" fill="#3b82f6" />
+  <path d="M 3 4 v 24 h 1 v -24 z" fill="#3b82f6" />
+  <!-- Slider plate metal housing -->
+  <rect x="9" y="3" width="10" height="9" fill="#94a3b8" />
+  <rect x="10" y="3" width="8" height="8" fill="#cbd5e1" />
+  <!-- Slider slot -->
+  <rect x="12" y="5" width="2" height="5" fill="#0f172a" />
+  <!-- Write protect notch -->
+  <rect x="26" y="25" width="3" height="3" fill="#0f172a" />
+  <!-- Sticker Label -->
+  <rect x="6" y="14" width="20" height="13" fill="#f8fafc" />
+  <!-- Sticker red heading marker -->
+  <rect x="6" y="14" width="20" height="2" fill="#ef4444" />
+  <!-- Sticker lines -->
+  <rect x="8" y="18" width="16" height="1" fill="#3b82f6" opacity="0.5" />
+  <rect x="8" y="21" width="16" height="1" fill="#3b82f6" opacity="0.5" />
+  <rect x="8" y="24" width="16" height="1" fill="#3b82f6" opacity="0.5" />
+</svg>

@@ -14,9 +14,10 @@ export class NotesService {
       tagNames?: string[];
       isPinned?: boolean;
       isFavorite?: boolean;
+      color?: string;
     }
   ) {
-    const { title, content, folderId, tagNames, isPinned, isFavorite } = data;
+    const { title, content, folderId, tagNames, isPinned, isFavorite, color } = data;
 
     const tagsConnectOrCreate = tagNames
       ? tagNames.map((name) => ({
@@ -31,6 +32,7 @@ export class NotesService {
         content,
         isPinned: isPinned ?? false,
         isFavorite: isFavorite ?? false,
+        color: color || null,
         user: { connect: { id: userId } },
         folder: folderId ? { connect: { id: folderId } } : undefined,
         tags: {
@@ -148,12 +150,13 @@ export class NotesService {
       isArchived?: boolean;
       isTrashed?: boolean;
       isFavorite?: boolean;
+      color?: string;
     }
   ) {
     // Check ownership
     await this.findOne(id, userId);
 
-    const { title, content, folderId, tagNames, isPinned, isArchived, isTrashed, isFavorite } = data;
+    const { title, content, folderId, tagNames, isPinned, isArchived, isTrashed, isFavorite, color } = data;
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
@@ -162,6 +165,7 @@ export class NotesService {
     if (isArchived !== undefined) updateData.isArchived = isArchived;
     if (isTrashed !== undefined) updateData.isTrashed = isTrashed;
     if (isFavorite !== undefined) updateData.isFavorite = isFavorite;
+    if (color !== undefined) updateData.color = color;
 
     // Handle Folder update
     if (folderId !== undefined) {

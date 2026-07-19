@@ -38,6 +38,7 @@ interface Note {
   folderId?: string | null;
   folder?: Folder | null;
   tags: Tag[];
+  color?: string | null;
 }
 
 interface DashboardStats {
@@ -120,6 +121,18 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [newFolderColor, setNewFolderColor] = useState("#3b82f6");
+
+  // --- NEW STATES FOR ENHANCEMENTS ---
+  const [editColor, setEditColor] = useState<string>("");
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'offline' | 'idle'>('idle');
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Command Palette State
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [paletteSearch, setPaletteSearch] = useState("");
+  const [paletteActiveView, setPaletteActiveView] = useState<'main' | 'theme'>('main');
+  const [paletteSelectedIndex, setPaletteSelectedIndex] = useState(0);
 
   // Save ref to keep track of current note values
   const editTitleRef = useRef(editTitle);
@@ -333,6 +346,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setEditContent(note.content);
     setEditFolderId(note.folderId || "");
     setEditTagsString(note.tags.map(t => t.name).join(", "));
+    setEditColor(note.color || "");
     setFlashcards([]);
   };
 
@@ -345,6 +359,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       isArchived: false,
       isTrashed: false,
       isFavorite: false,
+      color: "",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       folderId: selectedFolderId,
@@ -355,6 +370,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setEditContent(tempNew.content);
     setEditFolderId(tempNew.folderId || "");
     setEditTagsString(selectedTag ? selectedTag : "");
+    setEditColor("");
     setFlashcards([]);
   };
 
@@ -376,6 +392,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       content: editContent,
       folderId: editFolderId === "" ? null : editFolderId,
       tagNames,
+      color: editColor === "" ? null : editColor,
     };
 
     try {
@@ -392,6 +409,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               isArchived: false,
               isTrashed: false,
               isFavorite: false,
+              color: editColor || null,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               folderId: editFolderId === "" ? null : editFolderId,
@@ -422,6 +440,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   content: editContent,
                   folderId: editFolderId === "" ? null : editFolderId,
                   tags: tagNames.map((name, i) => ({ id: `offline-tag-${i}`, name })),
+                  color: editColor || null,
                   updatedAt: new Date().toISOString(),
                 };
               }
@@ -609,6 +628,15 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         return;
       }
 
+      // If Command Palette is open, let the command palette intercept keys
+      if (showCommandPalette) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setShowCommandPalette(false);
+        }
+        return;
+      }
+
       // Ctrl + S (Save)
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
@@ -618,6 +646,27 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       if (e.ctrlKey && e.key === "n") {
         e.preventDefault();
         createNewNote();
+      }
+      // Ctrl + K (Search / Command Palette)
+      if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        setPaletteSearch("");
+        setPaletteActiveView('main');
+        setPaletteSelectedIndex(0);
+        setShowCommandPalette(true);
+      }
+      // Ctrl + D (Duplicate)
+      if (e.ctrlKey && e.key === "d") {
+        e.preventDefault();
+        duplicateNote();
+      }
+      // Delete (Trash)
+      if (e.key === "Delete") {
+        const activeTag = document.activeElement?.tagName.toLowerCase();
+        if (activeTag !== "input" && activeTag !== "textarea" && selectedNote && selectedNote.id !== "new-note-temp") {
+          e.preventDefault();
+          toggleProperty('isTrashed');
+        }
       }
       // Ctrl + P (Pin note)
       if (e.ctrlKey && e.key === "p") {
@@ -634,7 +683,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedNote, editTitle, editContent, editFolderId, editTagsString, isOffline, isBooting]);
+  }, [selectedNote, editTitle, editContent, editFolderId, editTagsString, editColor, isOffline, isBooting, showCommandPalette]);
 
   // --- AI INTEGRATIONS ---
   const callAiAction = async (action: 'summarize' | 'grammar' | 'title' | 'tags' | 'flashcards') => {
@@ -744,11 +793,282 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
+  // --- ENHANCEMENTS AND HELPERS ---
+  const duplicateNote = async () => {
+    if (!selectedNote || selectedNote.id === "new-note-temp") return;
+    playFloppySave();
+    try {
+      const dupTitle = `Copy of ${selectedNote.title}`;
+      const dupContent = selectedNote.content;
+      const dupFolderId = selectedNote.folderId || undefined;
+      const dupTags = selectedNote.tags.map(t => t.name);
+      const dupColor = editColor;
+
+      if (isOffline) {
+        const offlineNote: Note = {
+          id: "offline-" + Math.random().toString(36).substr(2, 9),
+          title: dupTitle,
+          content: dupContent,
+          isPinned: false,
+          isArchived: false,
+          isTrashed: false,
+          isFavorite: false,
+          color: dupColor || null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          folderId: dupFolderId || null,
+          tags: dupTags.map((name, i) => ({ id: `offline-tag-${i}`, name })),
+        };
+        const nextNotes = [offlineNote, ...notes];
+        setNotes(nextNotes);
+        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
+        setSelectedNote(offlineNote);
+      } else {
+        const saved = await fetchAPI("/notes", {
+          token,
+          method: "POST",
+          body: JSON.stringify({
+            title: dupTitle,
+            content: dupContent,
+            folderId: dupFolderId,
+            tagNames: dupTags,
+            color: dupColor,
+          }),
+        });
+        setSelectedNote(saved);
+        loadData();
+      }
+    } catch (e) {
+      console.error("Duplicate failed:", e);
+    }
+  };
+
+  const themesList = ["green", "amber", "cyberpunk", "slate", "light"];
+  
+  const cycleTheme = () => {
+    const currentIndex = themesList.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themesList.length;
+    const nextTheme = themesList[nextIndex];
+    toggleTheme(nextTheme);
+  };
+
+  const insertMarkdown = (type: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+
+    let replacement = "";
+    let cursorOffset = 0;
+
+    switch (type) {
+      case "bold":
+        replacement = `**${selectedText || "bold text"}**`;
+        cursorOffset = selectedText ? replacement.length : 2;
+        break;
+      case "italic":
+        replacement = `*${selectedText || "italic text"}*`;
+        cursorOffset = selectedText ? replacement.length : 1;
+        break;
+      case "h1":
+        replacement = `\n# ${selectedText || "Heading 1"}\n`;
+        cursorOffset = replacement.length;
+        break;
+      case "h2":
+        replacement = `\n## ${selectedText || "Heading 2"}\n`;
+        cursorOffset = replacement.length;
+        break;
+      case "code":
+        replacement = `\`${selectedText || "code"}\``;
+        cursorOffset = selectedText ? replacement.length : 1;
+        break;
+      case "link":
+        replacement = `[${selectedText || "link text"}](https://example.com)`;
+        cursorOffset = selectedText ? replacement.length : 1;
+        break;
+      case "image":
+        replacement = `![${selectedText || "alt text"}](https://example.com/image.png)`;
+        cursorOffset = selectedText ? replacement.length : 2;
+        break;
+      case "list":
+        replacement = `\n- ${selectedText || "list item"}\n`;
+        cursorOffset = replacement.length;
+        break;
+      case "quote":
+        replacement = `\n> ${selectedText || "block quote"}\n`;
+        cursorOffset = replacement.length;
+        break;
+      default:
+        return;
+    }
+
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+    setEditContent(newContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+    }, 50);
+  };
+
+  const getGroupedNotes = (notesList: Note[]) => {
+    const today: Note[] = [];
+    const yesterday: Note[] = [];
+    const twoDaysAgo: Note[] = [];
+    const lastWeek: Note[] = [];
+    const older: Note[] = [];
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    const startOfTwoDaysAgo = new Date(startOfToday);
+    startOfTwoDaysAgo.setDate(startOfTwoDaysAgo.getDate() - 2);
+    const startOfLastWeek = new Date(startOfToday);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    notesList.forEach(note => {
+      const noteDate = new Date(note.updatedAt);
+      if (noteDate >= startOfToday) {
+        today.push(note);
+      } else if (noteDate >= startOfYesterday) {
+        yesterday.push(note);
+      } else if (noteDate >= startOfTwoDaysAgo) {
+        twoDaysAgo.push(note);
+      } else if (noteDate >= startOfLastWeek) {
+        lastWeek.push(note);
+      } else {
+        older.push(note);
+      }
+    });
+
+    return [
+      { title: "Recently Opened", notes: today },
+      { title: "Yesterday", notes: yesterday },
+      { title: "2 days ago", notes: twoDaysAgo },
+      { title: "Last Week", notes: lastWeek },
+      { title: "Older", notes: older },
+    ].filter(group => group.notes.length > 0);
+  };
+
+  const getCommandPaletteOptions = () => {
+    if (paletteActiveView === 'theme') {
+      return [
+        { id: 'theme-green', label: '🟢 CRT Green', action: () => { toggleTheme('green'); setShowCommandPalette(false); } },
+        { id: 'theme-amber', label: '🟠 Amber', action: () => { toggleTheme('amber'); setShowCommandPalette(false); } },
+        { id: 'theme-neon', label: '🔵 Neon', action: () => { toggleTheme('cyberpunk'); setShowCommandPalette(false); } },
+        { id: 'theme-dark', label: '⚫ Dark', action: () => { toggleTheme('slate'); setShowCommandPalette(false); } },
+        { id: 'theme-light', label: '⚪ Light', action: () => { toggleTheme('light'); setShowCommandPalette(false); } },
+        { id: 'theme-back', label: '◀ Back', action: () => setPaletteActiveView('main') },
+      ];
+    }
+
+    const defaultCommands = [
+      { id: 'new-note', label: '📝 Create a new note', action: () => { createNewNote(); setShowCommandPalette(false); } },
+      { id: 'theme-switch', label: '🎨 Switch theme...', action: () => { setPaletteActiveView('theme'); setPaletteSelectedIndex(0); } },
+      { id: 'go-favorites', label: '⭐ Go to Favorites', action: () => { setActiveStatus('favorite'); setSelectedFolderId(null); setSelectedTag(null); setShowCommandPalette(false); } },
+      { id: 'open-settings', label: '⚙️ Open Settings / Help', action: () => { setShowShortcutHelp(true); setShowCommandPalette(false); } },
+    ];
+
+    if (!paletteSearch.trim()) {
+      return defaultCommands;
+    }
+
+    const filteredNotes = notes.filter(
+      (n) =>
+        n.title.toLowerCase().includes(paletteSearch.toLowerCase()) ||
+        n.content.toLowerCase().includes(paletteSearch.toLowerCase())
+    );
+
+    const noteOptions = filteredNotes.slice(0, 5).map((note) => ({
+      id: `note-${note.id}`,
+      label: `📄 Note: ${note.title}`,
+      action: () => {
+        selectNote(note);
+        setShowCommandPalette(false);
+      },
+    }));
+
+    return [
+      ...noteOptions,
+      {
+        id: 'create-note-search',
+        label: `➕ Create note: "${paletteSearch}"`,
+        action: () => {
+          createNewNote();
+          setEditTitle(paletteSearch);
+          setShowCommandPalette(false);
+        },
+      },
+      ...defaultCommands,
+    ];
+  };
+
+  const handlePaletteKeyDown = (e: React.KeyboardEvent) => {
+    const options = getCommandPaletteOptions();
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setPaletteSelectedIndex((prev) => (prev + 1) % options.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setPaletteSelectedIndex((prev) => (prev - 1 + options.length) % options.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (options[paletteSelectedIndex]) {
+        options[paletteSelectedIndex].action();
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setShowCommandPalette(false);
+    }
+  };
+
+  const triggerAutoSave = async () => {
+    setAutoSaveStatus('saving');
+    try {
+      await saveNote();
+      setAutoSaveStatus('saved');
+    } catch (e) {
+      setAutoSaveStatus('offline');
+    }
+  };
+
+  // Debounced auto save effect
+  useEffect(() => {
+    if (!selectedNote) return;
+
+    const currentTags = selectedNote.tags.map(t => t.name).join(", ");
+    const isSame =
+      editTitle === selectedNote.title &&
+      editContent === selectedNote.content &&
+      editFolderId === (selectedNote.folderId || "") &&
+      editTagsString === currentTags &&
+      editColor === (selectedNote.color || "");
+
+    if (isSame) return;
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      triggerAutoSave();
+    }, 1500);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [editTitle, editContent, editFolderId, editTagsString, editColor]);
+
   // Basic client side markdown renderer
   const renderMarkdown = (text: string) => {
     if (!text) return "<p class='text-gray-500 italic'>Note content is empty...</p>";
     
-    // Very basic escaping & parsing for safe demonstration
     let html = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -780,8 +1100,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     html = html.replace(/\*\*([^*]+)\*\*/gim, '<strong>$1</strong>');
     html = html.replace(/\*([^*]+)\*/gim, '<em>$1</em>');
 
+    // Images: ![alt](url)
+    html = html.replace(/!\[([^\]]*?)\]\((.+?)\)/g, '<img src="$2" alt="$1" class="max-w-full my-2 border border-[var(--border-color)]" />');
+
+    // Links: [text](url)
+    html = html.replace(/(?<!\!)\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-color)] underline">$1</a>');
+
     // Paragraphs
-    html = html.replace(/^(?!<h|<li|<ul|<pre|<div)(.*$)/gim, '<p>$1</p>');
+    html = html.replace(/^(?!<h|<li|<ul|<pre|<div|<img|<a)(.*$)/gim, '<p>$1</p>');
 
     return html;
   };
@@ -889,34 +1215,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               {activeView === 'editor' ? '📊 STATS' : '📝 NOTES'}
             </button>
 
-            {/* Theme Selectors */}
-            <div className="flex items-center gap-1.5 border-2 border-[var(--border-color)] px-2 py-1 bg-[var(--bg-color)]">
-              <span className="text-[10px] uppercase font-bold text-gray-500 mr-1 select-none">
-                Theme:
-              </span>
-              {(['green', 'amber', 'win95', 'cyberpunk', 'slate', 'sunset', 'c64'] as string[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => toggleTheme(t)}
-                  className={`w-3.5 h-3.5 rounded-none border border-black cursor-pointer ${
-                    t === 'green'
-                      ? 'bg-green-600'
-                      : t === 'amber'
-                      ? 'bg-amber-500'
-                      : t === 'win95'
-                      ? 'bg-teal-700'
-                      : t === 'cyberpunk'
-                      ? 'bg-pink-600'
-                      : t === 'slate'
-                      ? 'bg-slate-600'
-                      : t === 'sunset'
-                      ? 'bg-fuchsia-500'
-                      : 'bg-blue-600'
-                  } ${theme === t ? 'outline-2 outline-offset-1 outline-[var(--accent-color)]' : ''}`}
-                  title={`${t.toUpperCase()} MONITOR`}
-                />
-              ))}
-            </div>
+            {/* Quick Theme Switcher */}
+            <button
+              onClick={cycleTheme}
+              className="retro-button px-3 py-1.5 text-xs font-mono uppercase flex items-center gap-1.5"
+              title="Cycle display theme"
+            >
+              🎨 Theme: {theme === 'green' ? '🟢 CRT Green' : theme === 'amber' ? '🟠 Amber' : theme === 'cyberpunk' ? '🔵 Neon' : theme === 'slate' ? '⚫ Dark' : theme === 'light' ? '⚪ Light' : `🎨 ${theme.toUpperCase()}`}
+            </button>
 
             {/* Toggle CRT overlay */}
             <button
