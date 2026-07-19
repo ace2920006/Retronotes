@@ -1275,6 +1275,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
           </div>
         </header>
 
+        {/* Mini Dashboard Stats Ribbon */}
+        {stats && (
+          <div className="bg-[var(--panel-bg)]/80 border-b border-[var(--border-color)]/30 px-6 py-2 flex flex-wrap gap-6 text-[10px] font-mono select-none z-10 text-glow">
+            <span className="flex items-center gap-1.5">📚 Total Notes: <strong className="text-[var(--accent-color)]">{stats.totalNotes}</strong></span>
+            <span className="flex items-center gap-1.5">⭐ Favorites: <strong className="text-yellow-500">{stats.favoriteCount}</strong></span>
+            <span className="flex items-center gap-1.5">📌 Pinned: <strong className="text-glow">{stats.pinnedCount}</strong></span>
+            <span className="flex items-center gap-1.5">🗑 Trash: <strong className="text-red-500">{stats.trashedCount}</strong></span>
+          </div>
+        )}
+
         {/* Dashboard Statistics Mode */}
         {activeView === 'dashboard' ? (
           <main className="flex-1 p-6 max-w-6xl mx-auto w-full select-none">
@@ -1488,41 +1498,51 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               </div>
 
               {/* Note tiles list */}
-              <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-color)]/30">
-                {notes.map((note) => {
-                  const isSelected = selectedNote?.id === note.id;
-                  const wordCount = note.content.trim().split(/\s+/).filter(Boolean).length;
-                  return (
-                    <article
-                      key={note.id}
-                      onClick={() => selectNote(note)}
-                      className={`p-4 cursor-pointer hover:bg-[var(--panel-bg)]/50 transition-colors ${
-                        isSelected ? 'bg-[var(--panel-bg)] border-l-4 border-l-[var(--accent-color)]' : ''
-                      }`}
-                    >
-                      <div className="flex justify-between items-start gap-2 mb-1.5">
-                        <h3 className={`text-sm font-bold truncate flex-1 text-glow ${isSelected ? 'text-[var(--accent-color)]' : ''}`}>
-                          {note.isPinned && "📌 "}{note.isFavorite && "⭐ "}{note.title}
-                        </h3>
-                        {note.folder && (
-                          <span
-                            className="text-[9px] px-1 py-0.5 border text-black font-bold uppercase"
-                            style={{ backgroundColor: note.folder.color || 'gray', borderColor: note.folder.color || 'gray' }}
+              <div className="flex-1 overflow-y-auto">
+                {getGroupedNotes(notes).map((group) => (
+                  <div key={group.title} className="border-b border-[var(--border-color)]/20 last:border-b-0">
+                    <div className="bg-[var(--panel-bg)]/85 text-[9px] uppercase font-bold tracking-wider px-4 py-1.5 text-gray-500 border-b border-[var(--border-color)]/10 select-none">
+                      {group.title}
+                    </div>
+                    <div className="divide-y divide-[var(--border-color)]/20">
+                      {group.notes.map((note) => {
+                        const isSelected = selectedNote?.id === note.id;
+                        const wordCount = note.content.trim().split(/\s+/).filter(Boolean).length;
+                        return (
+                          <article
+                            key={note.id}
+                            onClick={() => selectNote(note)}
+                            className={`p-4 cursor-pointer hover:bg-[var(--panel-bg)]/50 transition-colors ${
+                              isSelected ? 'bg-[var(--panel-bg)] border-l-4 border-l-[var(--accent-color)]' : ''
+                            }`}
                           >
-                            {note.folder.name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4)}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 line-clamp-2 leading-4 mb-2">
-                        {note.content.replace(/[#*`]/g, '') || 'Empty note content...'}
-                      </p>
-                      <div className="flex justify-between items-center text-[10px] text-gray-600 font-sans">
-                        <span>{new Date(note.updatedAt).toLocaleDateString()}</span>
-                        <span>{wordCount} words</span>
-                      </div>
-                    </article>
-                  );
-                })}
+                            <div className="flex justify-between items-start gap-2 mb-1.5">
+                              <h3 className={`text-sm font-bold truncate flex-1 text-glow ${isSelected ? 'text-[var(--accent-color)]' : ''}`}>
+                                {note.color && <span className="mr-1.5 select-none" style={{ color: note.color }}>●</span>}
+                                {note.isPinned && "📌 "}{note.isFavorite && "⭐ "}{note.title}
+                              </h3>
+                              {note.folder && (
+                                <span
+                                  className="text-[9px] px-1 py-0.5 border text-black font-bold uppercase"
+                                  style={{ backgroundColor: note.folder.color || 'gray', borderColor: note.folder.color || 'gray' }}
+                                >
+                                  {note.folder.name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 line-clamp-2 leading-4 mb-2">
+                              {note.content.replace(/[#*`]/g, '') || 'Empty note content...'}
+                            </p>
+                            <div className="flex justify-between items-center text-[10px] text-gray-600 font-sans">
+                              <span>{new Date(note.updatedAt).toLocaleDateString()}</span>
+                              <span>{wordCount} words</span>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
                 
                 {notes.length === 0 && (
                   <div className="p-8 text-center text-xs text-gray-500 italic select-none">
@@ -1583,6 +1603,39 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         onChange={(e) => setEditTagsString(e.target.value)}
                         className="px-2 py-1 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] w-44"
                       />
+
+                      {/* Note Colors Picker */}
+                      <div className="flex items-center gap-1 border-2 border-[var(--border-color)] px-1.5 py-0.5 bg-[var(--bg-color)]">
+                        <span className="text-[9px] uppercase font-bold text-gray-500 mr-1 select-none">Color:</span>
+                        {[
+                          { name: 'Yellow', value: '#fef08a' },
+                          { name: 'Green', value: '#bbf7d0' },
+                          { name: 'Blue', value: '#bfdbfe' },
+                          { name: 'Red', value: '#fecaca' },
+                          { name: 'Purple', value: '#e9d5ff' },
+                        ].map((c) => (
+                          <button
+                            key={c.name}
+                            type="button"
+                            onClick={() => setEditColor(editColor === c.value ? "" : c.value)}
+                            className={`w-3 h-3 rounded-none border border-black cursor-pointer ${
+                              editColor === c.value ? 'outline-2 outline-[var(--accent-color)]' : ''
+                            }`}
+                            style={{ backgroundColor: c.value }}
+                            title={c.name}
+                          />
+                        ))}
+                        {editColor && (
+                          <button
+                            type="button"
+                            onClick={() => setEditColor("")}
+                            className="text-[9px] text-red-500 ml-1 font-bold font-mono"
+                            title="Reset color"
+                          >
+                            [X]
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Toolbar Actions */}
@@ -1598,21 +1651,13 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         </button>
                       )}
 
-                      {/* Export Dropdown */}
-                      <select
-                        onChange={(e) => {
-                          if(e.target.value) {
-                            exportNote(e.target.value as "txt" | "md" | "pdf");
-                            e.target.value = "";
-                          }
-                        }}
-                        className="px-2 py-1 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] font-mono"
-                      >
-                        <option value="">EXPORT...</option>
-                        <option value="txt">DOWNLOAD TXT</option>
-                        <option value="md">DOWNLOAD MD</option>
-                        <option value="pdf">PRINT PDF</option>
-                      </select>
+                      {/* One-click Export Buttons */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] text-gray-500 uppercase select-none mr-0.5">Export:</span>
+                        <button type="button" onClick={() => exportNote("txt")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as TXT file">TXT</button>
+                        <button type="button" onClick={() => exportNote("md")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as MD file">MD</button>
+                        <button type="button" onClick={() => exportNote("pdf")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Print note to PDF">PDF</button>
+                      </div>
 
                       {/* Toggles */}
                       <button
@@ -1669,6 +1714,19 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                     {/* Left Pane: Raw Edit */}
                     <div className="flex-1 flex flex-col p-4 border-r border-[var(--border-color)]/30 overflow-hidden">
+                      {/* Markdown Toolbar */}
+                      <div className="flex flex-wrap gap-1 mb-2 border-b border-[var(--border-color)]/20 pb-1 select-none">
+                        <button type="button" onClick={() => insertMarkdown("bold")} className="retro-button px-2 py-0.5 text-[9px] font-bold font-mono" title="Insert Bold text">B</button>
+                        <button type="button" onClick={() => insertMarkdown("italic")} className="retro-button px-2 py-0.5 text-[9px] italic font-mono" title="Insert Italic text">I</button>
+                        <button type="button" onClick={() => insertMarkdown("h1")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Heading 1">H1</button>
+                        <button type="button" onClick={() => insertMarkdown("h2")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Heading 2">H2</button>
+                        <button type="button" onClick={() => insertMarkdown("code")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Code block">&lt;&gt;</button>
+                        <button type="button" onClick={() => insertMarkdown("link")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Link syntax">Link</button>
+                        <button type="button" onClick={() => insertMarkdown("image")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Image syntax">Image</button>
+                        <button type="button" onClick={() => insertMarkdown("list")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert List bullet">List</button>
+                        <button type="button" onClick={() => insertMarkdown("quote")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert block Quote">Quote</button>
+                      </div>
+
                       <input
                         type="text"
                         placeholder="Note Title"
@@ -1680,7 +1738,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         className="w-full bg-transparent border-b-2 border-[var(--border-color)]/40 text-xl font-bold py-2 mb-4 text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] text-glow font-mono"
                       />
                       <textarea
-                        placeholder="Type note content in Markdown format... Use Ctrl+S to save."
+                        ref={textareaRef}
+                        onDrop={handleDropImage}
+                        onDragOver={handleDragOverImage}
+                        placeholder="Type note content in Markdown format... Drag & Drop images here... Use Ctrl+S to save."
                         value={editContent}
                         onChange={(e) => {
                           setEditContent(e.target.value);
@@ -1716,10 +1777,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   </div>
 
                   {/* Bottom Note Footer bar */}
-                  <footer className="p-3 border-t border-[var(--border-color)]/40 bg-[var(--panel-bg)]/40 flex justify-between items-center text-[10px] font-sans text-gray-500 select-none">
-                    <span>
-                      Words: {editContent.trim().split(/\s+/).filter(Boolean).length} | Characters: {editContent.length}
-                    </span>
+                  <footer className="p-3 border-t border-[var(--border-color)]/40 bg-[var(--panel-bg)]/40 flex justify-between items-center text-[9px] font-sans text-gray-500 select-none flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
+                      <span>Words: {editContent.trim().split(/\s+/).filter(Boolean).length}</span>
+                      <span>Characters: {editContent.length}</span>
+                      <span>Paragraphs: {editContent.split(/\n\s*\n/).filter(line => line.trim().length > 0).length}</span>
+                      <span className="text-[var(--border-color)]">|</span>
+                      <span>📝 {editContent.trim().split(/\s+/).filter(Boolean).length} words</span>
+                      <span>⏱ {Math.ceil(editContent.trim().split(/\s+/).filter(Boolean).length / 200)} min read</span>
+                    </div>
+                    
                     <div className="flex items-center gap-4">
                       {/* AI Toolbar Drawer options */}
                       {editContent && (
@@ -1732,29 +1799,55 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         </div>
                       )}
                       
-                      <button
-                        onClick={saveNote}
-                        className="retro-button px-4 py-1 text-[10px] font-bold font-mono"
-                      >
-                        💾 SAVE NOTE (Ctrl+S)
-                      </button>
+                      <div className="flex items-center gap-3">
+                        {/* Auto save indicator */}
+                        <div className="flex items-center gap-1.5 font-mono text-[9px] select-none">
+                          {autoSaveStatus === 'saving' && (
+                            <span className="flex items-center gap-1 font-bold text-red-500 animate-pulse">
+                              ● Saving...
+                            </span>
+                          )}
+                          {autoSaveStatus === 'saved' && (
+                            <span className="flex items-center gap-1 font-bold text-green-500">
+                              ✓ Saved just now
+                            </span>
+                          )}
+                          {autoSaveStatus === 'offline' && (
+                            <span className="flex items-center gap-1 font-bold text-yellow-500 animate-pulse">
+                              ⚠ Offline
+                            </span>
+                          )}
+                          {autoSaveStatus === 'idle' && (
+                            <span className="text-gray-600">
+                              ● Auto-save active
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={saveNote}
+                          className="retro-button px-3 py-1 text-[9px] font-bold font-mono"
+                        >
+                          💾 SAVE (Ctrl+S)
+                        </button>
+                      </div>
                     </div>
                   </footer>
                 </div>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 select-none">
-                  <span className="text-6xl animate-pulse mb-4 text-glow">📟</span>
+                  <span className="text-6xl mb-4 text-glow animate-pulse">📼</span>
                   <h2 className="text-xl font-bold uppercase tracking-wider text-glow mb-2">
-                    RetroNotes Terminal
+                    {notes.length === 0 ? "No notes yet" : "No note selected"}
                   </h2>
                   <p className="text-xs text-gray-500 max-w-sm font-sans mb-6">
-                    Select a note from the column to the left, or write a new one to begin editing.
+                    {notes.length === 0 ? "Start recording your ideas..." : "Select a note from the column to the left, or write a new one to begin editing."}
                   </p>
                   <button
                     onClick={createNewNote}
-                    className="retro-button px-6 py-2 uppercase text-xs font-bold"
+                    className="retro-button px-6 py-2.5 uppercase text-xs font-bold border-4"
                   >
-                    Pen New Note
+                    [ + Create Note ]
                   </button>
                 </div>
               )}
@@ -1898,16 +1991,20 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 <span className="text-glow font-bold">Ctrl + S</span>
               </div>
               <div className="flex justify-between">
+                <span>SEARCH / PALETTE:</span>
+                <span className="text-glow font-bold">Ctrl + K</span>
+              </div>
+              <div className="flex justify-between">
+                <span>DUPLICATE Note:</span>
+                <span className="text-glow font-bold">Ctrl + D</span>
+              </div>
+              <div className="flex justify-between">
+                <span>MOVE TO TRASH:</span>
+                <span className="text-glow font-bold">Delete</span>
+              </div>
+              <div className="flex justify-between">
                 <span>PIN / UNPIN Note:</span>
                 <span className="text-glow font-bold">Ctrl + P</span>
-              </div>
-              <div className="flex justify-between">
-                <span>ARCHIVE Note:</span>
-                <span className="text-glow font-bold">Ctrl + Shift + A</span>
-              </div>
-              <div className="flex justify-between">
-                <span>TRASH Note:</span>
-                <span className="text-glow font-bold">Ctrl + Shift + D</span>
               </div>
               <div className="flex justify-between">
                 <span>CLOSE MODAL / ASSISTANT:</span>
@@ -1983,6 +2080,73 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* MODAL: Command Palette (Ctrl+K) */}
+      {showCommandPalette && (
+        <div className="fixed inset-0 bg-black/80 flex items-start justify-center p-4 pt-[15vh] z-[999] select-none">
+          <div 
+            className="retro-border bg-[var(--panel-bg)] max-w-lg w-full overflow-hidden shadow-2xl flex flex-col"
+            onKeyDown={handlePaletteKeyDown}
+          >
+            {/* Windows 95 title or Command header */}
+            <div className="win95-window-title flex justify-between items-center select-none text-[10px] uppercase font-bold py-1 px-3">
+              <span>📟 Command Palette Console v1.0</span>
+              <button 
+                onClick={() => setShowCommandPalette(false)}
+                className="text-[9px] border px-1 bg-[#c0c0c0] text-black hover:bg-red-500 hover:text-white"
+              >
+                [X]
+              </button>
+            </div>
+            
+            {/* Input field */}
+            <div className="p-3 border-b border-[var(--border-color)]/30">
+              <input
+                type="text"
+                autoFocus
+                placeholder="Type a command or search notes..."
+                value={paletteSearch}
+                onChange={(e) => {
+                  setPaletteSearch(e.target.value);
+                  setPaletteSelectedIndex(0);
+                }}
+                className="w-full px-3 py-2 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] font-mono text-glow"
+              />
+            </div>
+            
+            {/* Command / Search Results List */}
+            <div className="max-h-[300px] overflow-y-auto divide-y divide-[var(--border-color)]/10 font-mono text-xs">
+              {getCommandPaletteOptions().map((opt, idx) => {
+                const isSelected = idx === paletteSelectedIndex;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => opt.action()}
+                    className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
+                      isSelected ? 'bg-[var(--accent-color)] text-black font-bold' : 'hover:bg-[var(--bg-color)]/50'
+                    }`}
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    {isSelected && <span className="text-[9px] uppercase font-bold px-1 bg-black text-[var(--accent-color)]">[Enter]</span>}
+                  </div>
+                );
+              })}
+              {getCommandPaletteOptions().length === 0 && (
+                <div className="px-4 py-6 text-center text-gray-500 italic">
+                  No commands or notes found matching &quot;{paletteSearch}&quot;
+                </div>
+              )}
+            </div>
+            
+            {/* Help / Shortcut hint footer */}
+            <div className="bg-[var(--bg-color)] px-4 py-2 border-t border-[var(--border-color)]/30 flex justify-between text-[9px] text-gray-500 select-none">
+              <span>↑↓ to navigate</span>
+              <span>ENTER to select</span>
+              <span>ESC to exit</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
