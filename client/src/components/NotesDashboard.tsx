@@ -852,6 +852,34 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     toggleTheme(nextTheme);
   };
 
+  const handleDropImage = (e: React.DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target?.result as string;
+          const textarea = textareaRef.current;
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const replacement = `![image](${base64})`;
+            const newContent = text.substring(0, start) + replacement + text.substring(end);
+            setEditContent(newContent);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const handleDragOverImage = (e: React.DragEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+  };
+
   const insertMarkdown = (type: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
