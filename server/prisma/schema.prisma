@@ -16,11 +16,28 @@ model User {
   password      String?
   emailVerified DateTime?
   image         String?
+  bio           String?
+  banner        String?
+  twitterUrl    String?
+  mediumUrl     String?
+  githubUrl     String?
+  streak        Int       @default(0)
+  lastWriteDate DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
   notes         Note[]
   folders       Folder[]
   tags          Tag[]
+  
+  followers     Follow[] @relation("following")
+  following     Follow[] @relation("follower")
+  followedTags  TagFollow[]
+  notifications Notification[]
+  comments      Comment[]
+  reactions     Reaction[]
+  achievements  UserAchievement[]
+  readingLists  ReadingList[]
 }
 
 model Folder {
@@ -47,19 +64,124 @@ model Tag {
 }
 
 model Note {
-  id         String   @id @default(uuid())
-  title      String
-  content    String
-  isPinned   Boolean  @default(false)
-  isArchived Boolean  @default(false)
-  isTrashed  Boolean  @default(false)
-  isFavorite Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folderId   String?
-  folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  tags       Tag[]    // Implicit many-to-many
-  color      String?
+  id                 String   @id @default(uuid())
+  title              String
+  content            String
+  isPinned           Boolean  @default(false)
+  isArchived         Boolean  @default(false)
+  isTrashed          Boolean  @default(false)
+  isFavorite         Boolean  @default(false)
+  isPublished        Boolean  @default(true)
+  publishedAt        DateTime @default(now())
+  viewsCount         Int      @default(0)
+  uniqueReadersCount Int      @default(0)
+  mood               String?
+  summary            String?
+  collection         String?  // Poetry, Stories, Personal Journal, Programming, Quotes, Articles
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId           String?
+  folder             Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags               Tag[]    // Implicit many-to-many
+  color              String?
+
+  seriesId           String?
+  series             Series?  @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  comments           Comment[]
+  reactions          Reaction[]
+  readingLists       ReadingList[]
 }
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model TagFollow {
+  id        String   @id @default(uuid())
+  tagName   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([tagName, userId])
+}
+
+model Reaction {
+  id        String   @id @default(uuid())
+  type      String   // LOVE, FIRE, INSIGHTFUL, CLAP, EMOTIONAL
+  noteId    String
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([noteId, userId, type])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  noteId    String
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+}
+
+model Series {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  notes       Note[]
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  type        String   // FOLLOW, COMMENT, REACTION, PUBLISH, MENTION
+  userId      String   // Target user
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderId    String?  // Actor user
+  senderName  String?
+  senderImage String?
+  noteId      String?  // Target note/post if applicable
+  commentId   String?  // Target comment if applicable
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model UserAchievement {
+  id          String   @id @default(uuid())
+  badgeId     String   // FIRST_NOTE, SEVEN_DAY_STREAK, HUNDRED_LIKES, FIFTY_NOTES, FIRST_COMMENT, FIRST_FOLLOWER
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unlockedAt  DateTime @default(now())
+
+  @@unique([badgeId, userId])
+}
+
+model ReadingList {
+  id          String   @id @default(uuid())
+  name        String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes       Note[]
+  createdAt   DateTime @default(now())
+}
+
