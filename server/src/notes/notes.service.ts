@@ -142,10 +142,9 @@ export class NotesService {
       sort?: 'newest' | 'oldest';
       feed?: 'personal' | 'following' | 'trending';
       collection?: string;
-      seriesId?: string;
     }
   ) {
-    const { folderId, tag, search, status, sort, feed, collection, seriesId } = filters;
+    const { folderId, tag, search, status, sort, feed, collection } = filters;
 
     // Build the query where clause
     const whereClause: any = {};
@@ -195,10 +194,6 @@ export class NotesService {
     // Collection filter (e.g. Poetry, Stories, etc.)
     if (collection) {
       whereClause.collection = collection;
-    }
-
-    if (seriesId) {
-      whereClause.seriesId = seriesId;
     }
 
     // Folder filter
@@ -306,9 +301,9 @@ export class NotesService {
         where: { id },
         data: {
           viewsCount: { increment: 1 },
-          uniqueReadersCount: { increment: 1 }, // Simple increment
         },
       });
+      note.viewsCount += 1;
     }
 
     return note;
@@ -326,16 +321,18 @@ export class NotesService {
       isArchived?: boolean;
       isTrashed?: boolean;
       isFavorite?: boolean;
-      color?: string;
       isPublished?: boolean;
       collection?: string;
-      seriesId?: string;
       mood?: string;
       summary?: string;
+      color?: string;
     }
   ) {
     // Check ownership
-    const note = await this.findOne(id, userId);
+    const note = await this.prisma.note.findUnique({ where: { id } });
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
     if (note.userId !== userId) {
       throw new ForbiddenException('You do not own this note');
     }
@@ -349,12 +346,11 @@ export class NotesService {
       isArchived,
       isTrashed,
       isFavorite,
-      color,
       isPublished,
       collection,
-      seriesId,
       mood,
       summary,
+      color,
     } = data;
 
     const updateData: any = {};
@@ -364,12 +360,13 @@ export class NotesService {
     if (isArchived !== undefined) updateData.isArchived = isArchived;
     if (isTrashed !== undefined) updateData.isTrashed = isTrashed;
     if (isFavorite !== undefined) updateData.isFavorite = isFavorite;
-    if (color !== undefined) updateData.color = color;
     if (isPublished !== undefined) updateData.isPublished = isPublished;
     if (collection !== undefined) updateData.collection = collection;
     if (mood !== undefined) updateData.mood = mood;
     if (summary !== undefined) updateData.summary = summary;
+    if (color !== undefined) updateData.color = color;
 
+    // Handle Folder update
     if (folderId !== undefined) {
       if (folderId === null || folderId === '') {
         updateData.folder = { disconnect: true };
@@ -378,14 +375,7 @@ export class NotesService {
       }
     }
 
-    if (seriesId !== undefined) {
-      if (seriesId === null || seriesId === '') {
-        updateData.series = { disconnect: true };
-      } else {
-        updateData.series = { connect: { id: seriesId } };
-      }
-    }
-
+    // Handle Tags update
     if (tagNames !== undefined) {
       const tagsConnectOrCreate = tagNames.map((name) => ({
         where: { name_userId: { name, userId } },
@@ -393,86 +383,27 @@ export class NotesService {
       }));
 
       updateData.tags = {
-        set: [],
+        set: [], // clear current tags
         connectOrCreate: tagsConnectOrCreate,
       };
     }
 
-    const updatedNote = await this.prisma.note.update({
+    return this.prisma.note.update({
       where: { id },
       data: updateData,
       include: {
         folder: true,
         tags: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            bio: true,
-          },
-        },
       },
     });
-
-    // Check streaks if this is newly published
-    if (isPublished === true && !note.isPublished) {
-      // Calculate streak
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        let newStreak = user.streak;
-        const now = new Date();
-        const lastWrite = user.lastWriteDate;
-
-        if (!lastWrite) {
-          newStreak = 1;
-        } else {
-          const diffTime = Math.abs(now.getTime() - lastWrite.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (diffDays <= 1) {
-            // Written today or yesterday
-            if (diffDays === 1) {
-              newStreak += 1;
-            }
-          } else {
-            // Streak broken
-            newStreak = 1;
-          }
-        }
-
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: {
-            streak: newStreak,
-            lastWriteDate: now,
-          },
-        });
-
-        // Award achievement for 7 day streak
-        if (newStreak >= 7) {
-          await this.prisma.userAchievement.upsert({
-            where: {
-              badgeId_userId: {
-                badgeId: 'SEVEN_DAY_STREAK',
-                userId,
-              },
-            },
-            update: {},
-            create: {
-              badgeId: 'SEVEN_DAY_STREAK',
-              userId,
-            },
-          });
-        }
-      }
-    }
-
-    return updatedNote;
   }
 
   async remove(id: string, userId: string) {
     // Check ownership
-    const note = await this.findOne(id, userId);
+    const note = await this.prisma.note.findUnique({ where: { id } });
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
     if (note.userId !== userId) {
       throw new ForbiddenException('You do not own this note');
     }

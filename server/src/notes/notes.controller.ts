@@ -17,12 +17,11 @@ export class NotesController {
       tagNames?: string[];
       isPinned?: boolean;
       isFavorite?: boolean;
-      color?: string;
       isPublished?: boolean;
       collection?: string;
-      seriesId?: string;
       mood?: string;
       summary?: string;
+      color?: string;
     }
   ) {
     return this.notesService.create(req.user.id, body);
@@ -38,7 +37,6 @@ export class NotesController {
     @Query('sort') sort?: 'newest' | 'oldest',
     @Query('feed') feed?: 'personal' | 'following' | 'trending',
     @Query('collection') collection?: string,
-    @Query('seriesId') seriesId?: string,
   ) {
     return this.notesService.findAll(req.user.id, {
       folderId,
@@ -48,7 +46,6 @@ export class NotesController {
       sort,
       feed,
       collection,
-      seriesId,
     });
   }
 
@@ -75,12 +72,11 @@ export class NotesController {
       isArchived?: boolean;
       isTrashed?: boolean;
       isFavorite?: boolean;
-      color?: string;
       isPublished?: boolean;
       collection?: string;
-      seriesId?: string;
       mood?: string;
       summary?: string;
+      color?: string;
     }
   ) {
     return this.notesService.update(id, req.user.id, body);

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -12,11 +12,16 @@ export class CommentsController {
     @Request() req: any,
     @Body() body: { noteId: string; content: string; parentId?: string }
   ) {
-    return this.commentsService.create(req.user.id, body);
+    return this.commentsService.createComment(req.user.id, body.noteId, body.content, body.parentId);
   }
 
   @Get('note/:noteId')
-  async getNoteComments(@Param('noteId') noteId: string) {
-    return this.commentsService.getCommentsTree(noteId);
+  async getForNote(@Param('noteId') noteId: string) {
+    return this.commentsService.getCommentsForNote(noteId);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Request() req: any) {
+    return this.commentsService.deleteComment(id, req.user.id);
   }
 }

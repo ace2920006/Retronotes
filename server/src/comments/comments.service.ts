@@ -5,27 +5,23 @@ import { PrismaService } from '../prisma.service';
 export class CommentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    userId: string,
-    data: { noteId: string; content: string; parentId?: string }
-  ) {
-    const { noteId, content, parentId } = data;
-
-    // Check if note exists
+  async createComment(userId: string, noteId: string, content: string, parentId?: string) {
+    // Verify note exists
     const note = await this.prisma.note.findUnique({
       where: { id: noteId },
+      include: { user: true },
     });
     if (!note) {
-      throw new NotFoundException(`Note with ID ${noteId} not found`);
+      throw new NotFoundException('Note not found');
     }
 
-    // Check if parent comment exists if parentId is provided
+    // Verify parent comment if parentId is supplied
     if (parentId) {
-      const parentComment = await this.prisma.comment.findUnique({
+      const parent = await this.prisma.comment.findUnique({
         where: { id: parentId },
       });
-      if (!parentComment) {
-        throw new NotFoundException(`Parent comment with ID ${parentId} not found`);
+      if (!parent) {
+        throw new NotFoundException('Parent comment not found');
       }
     }
 
@@ -47,32 +43,37 @@ export class CommentsService {
       },
     });
 
-    // Notify note owner
+    // Notify the note owner (if it's someone else)
     if (note.userId !== userId) {
       await this.prisma.notification.create({
         data: {
           type: 'COMMENT',
           userId: note.userId,
           senderId: userId,
+          senderName: comment.author.name || 'A writer',
+          senderImage: comment.author.image || '✍️',
           noteId,
           commentId: comment.id,
-          content: `commented on your post: "${content.substring(0, 30)}${content.length > 30 ? '...' : ''}"`,
+          content: `commented on your note "${note.title}": "${content.substring(0, 30)}${content.length > 30 ? '...' : ''}"`,
         },
       });
     }
 
-    // Notify parent comment author if it's a reply
+    // If it's a nested reply, notify the parent comment owner (if different from note owner and actor)
     if (parentId) {
       const parentComment = await this.prisma.comment.findUnique({
         where: { id: parentId },
-        select: { authorId: true },
+        include: { author: true },
       });
+
       if (parentComment && parentComment.authorId !== userId && parentComment.authorId !== note.userId) {
         await this.prisma.notification.create({
           data: {
-            type: 'COMMENT', // or MENTION/REPLY
+            type: 'COMMENT',
             userId: parentComment.authorId,
             senderId: userId,
+            senderName: comment.author.name || 'A writer',
+            senderImage: comment.author.image || '✍️',
             noteId,
             commentId: comment.id,
             content: `replied to your comment: "${content.substring(0, 30)}${content.length > 30 ? '...' : ''}"`,
@@ -81,11 +82,32 @@ export class CommentsService {
       }
     }
 
+    // Check achievement unlock: FIRST_COMMENT
+    const achievementsCount = await this.prisma.userAchievement.count({
+      where: { userId, badgeId: 'FIRST_COMMENT' },
+    });
+    if (achievementsCount === 0) {
+      await this.prisma.userAchievement.create({
+        data: {
+          badgeId: 'FIRST_COMMENT',
+          userId,
+        },
+      });
+      // Also notify user they unlocked an achievement
+      await this.prisma.notification.create({
+        data: {
+          type: 'PUBLISH', // generic update
+          userId,
+          content: '🏆 Unlocked Achievement: First Comment! You left your first feedback.',
+        },
+      });
+    }
+
     return comment;
   }
 
-  async getCommentsTree(noteId: string) {
-    const comments = await this.prisma.comment.findMany({
+  async getCommentsForNote(noteId: string) {
+    return this.prisma.comment.findMany({
       where: { noteId },
       include: {
         author: {
@@ -100,30 +122,29 @@ export class CommentsService {
         createdAt: 'asc',
       },
     });
+  }
 
-    // Build threaded tree in memory
-    const commentMap: Record<string, any> = {};
-    const roots: any[] = [];
-
-    comments.forEach((comment) => {
-      commentMap[comment.id] = { ...comment, replies: [] };
+  async deleteComment(commentId: string, userId: string) {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id: commentId },
     });
 
-    comments.forEach((comment) => {
-      const mappedComment = commentMap[comment.id];
-      if (comment.parentId) {
-        const parent = commentMap[comment.parentId];
-        if (parent) {
-          parent.replies.push(mappedComment);
-        } else {
-          // Parent not found in this list, treat as root
-          roots.push(mappedComment);
-        }
-      } else {
-        roots.push(mappedComment);
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    if (comment.authorId !== userId) {
+      // Also allow note owner to delete comments on their own note
+      const note = await this.prisma.note.findUnique({
+        where: { id: comment.noteId },
+      });
+      if (!note || note.userId !== userId) {
+        throw new NotFoundException('You are not authorized to delete this comment');
       }
-    });
+    }
 
-    return roots;
+    return this.prisma.comment.delete({
+      where: { id: commentId },
+    });
   }
 }

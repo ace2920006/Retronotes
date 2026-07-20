@@ -219,25 +219,6 @@ export class AiService {
     }
   }
 
-  async detectMood(content: string): Promise<string> {
-    const system =
-      'You are a sensitive mood analyzer. Analyze the mood of the note content provided. Return ONLY a single word or emoji representing the mood (e.g. Joyful 😊, Melancholic 😢, Angry 😠, Peaceful 🍃, Inspired 💡, Anxious 😰, Creative 🎨). Return nothing else.';
-    const prompt = `Analyze the mood of this text:\n\n${content}`;
-
-    try {
-      const response = await this.callGemini(prompt, system);
-      return response.trim();
-    } catch (e) {
-      this.logger.warn('Gemini error, using fallback mood detector');
-      const text = content.toLowerCase();
-      if (text.includes('happy') || text.includes('joy') || text.includes('great')) return 'Joyful 😊';
-      if (text.includes('sad') || text.includes('lonely') || text.includes('cry')) return 'Melancholic 😢';
-      if (text.includes('angry') || text.includes('mad') || text.includes('hate')) return 'Angry 😠';
-      if (text.includes('code') || text.includes('build') || text.includes('learn')) return 'Inspired 💡';
-      return 'Peaceful 🍃';
-    }
-  }
-
   private generateMockResponse(messages: { role: string; content: string }[]): string {
     const lastUserMessage =
       [...messages].reverse().find((m) => m.role === 'user')?.content?.toLowerCase() || '';

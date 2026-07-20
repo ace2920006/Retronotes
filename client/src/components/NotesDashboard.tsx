@@ -33,12 +33,28 @@ interface Note {
   isArchived: boolean;
   isTrashed: boolean;
   isFavorite: boolean;
+  isPublished?: boolean;
+  publishedAt?: string;
+  viewsCount?: number;
+  uniqueReadersCount?: number;
+  mood?: string | null;
+  summary?: string | null;
+  collection?: string | null;
   createdAt: string;
   updatedAt: string;
   folderId?: string | null;
   folder?: Folder | null;
   tags: Tag[];
   color?: string | null;
+  user?: {
+    id: string;
+    name: string;
+    image?: string;
+    bio?: string;
+    streak: number;
+  } | null;
+  reactions?: any[];
+  comments?: any[];
 }
 
 interface DashboardStats {
@@ -82,6 +98,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const [editContent, setEditContent] = useState("");
   const [editFolderId, setEditFolderId] = useState("");
   const [editTagsString, setEditTagsString] = useState(""); // comma-separated
+  const [editIsPublished, setEditIsPublished] = useState<boolean>(true);
+  const [editCollection, setEditCollection] = useState<string>("");
+  const [editMood, setEditMood] = useState<string>("");
+  const [editSummary, setEditSummary] = useState<string>("");
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -396,6 +416,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setEditFolderId(note.folderId || "");
     setEditTagsString(note.tags.map(t => t.name).join(", "));
     setEditColor(note.color || "");
+    setEditIsPublished(note.isPublished !== false);
+    setEditCollection(note.collection || "");
+    setEditMood(note.mood || "");
+    setEditSummary(note.summary || "");
     setFlashcards([]);
 
     try {
@@ -621,6 +645,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setEditFolderId(tempNew.folderId || "");
     setEditTagsString(selectedTag ? selectedTag : "");
     setEditColor("");
+    setEditIsPublished(true);
+    setEditCollection("");
+    setEditMood("");
+    setEditSummary("");
     setFlashcards([]);
   };
 

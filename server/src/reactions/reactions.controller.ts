@@ -15,8 +15,8 @@ export class ReactionsController {
     return this.reactionsService.toggleReaction(req.user.id, body.noteId, body.type);
   }
 
-  @Get('note/:noteId')
-  async getStats(@Param('noteId') noteId: string) {
-    return this.reactionsService.getReactionStats(noteId);
+  @Get(':noteId')
+  async getStats(@Param('noteId') noteId: string, @Request() req: any) {
+    return this.reactionsService.getReactionStats(noteId, req.user.id);
   }
 }
