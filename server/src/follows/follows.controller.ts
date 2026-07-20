@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Param, UseGuards, Request } from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -7,14 +7,19 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class FollowsController {
   constructor(private readonly followsService: FollowsService) {}
 
-  @Post('follow')
-  async follow(@Request() req: any, @Body() body: { followingId: string }) {
-    return this.followsService.follow(req.user.id, body.followingId);
+  @Post('follow/:userId')
+  async follow(@Request() req: any, @Param('userId') userId: string) {
+    return this.followsService.follow(req.user.id, userId);
   }
 
-  @Post('unfollow')
-  async unfollow(@Request() req: any, @Body() body: { followingId: string }) {
-    return this.followsService.unfollow(req.user.id, body.followingId);
+  @Post('unfollow/:userId')
+  async unfollow(@Request() req: any, @Param('userId') userId: string) {
+    return this.followsService.unfollow(req.user.id, userId);
+  }
+
+  @Get('status/:userId')
+  async status(@Request() req: any, @Param('userId') userId: string) {
+    return this.followsService.isFollowing(req.user.id, userId);
   }
 
   @Get('followers/:userId')
@@ -25,11 +30,5 @@ export class FollowsController {
   @Get('following/:userId')
   async getFollowing(@Param('userId') userId: string) {
     return this.followsService.getFollowing(userId);
-  }
-
-  @Get('status/:followingId')
-  async getStatus(@Request() req: any, @Param('followingId') followingId: string) {
-    const isFollowing = await this.followsService.isFollowing(req.user.id, followingId);
-    return { isFollowing };
   }
 }

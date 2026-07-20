@@ -30,4 +30,3 @@ import { NotificationsModule } from './notifications/notifications.module';
   providers: [AppService, PrismaService],
 })
 export class AppModule {}
-

@@ -8,8 +8,13 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  async getMyNotifications(@Request() req: any) {
-    return this.notificationsService.getNotifications(req.user.id);
+  async getNotifications(@Request() req: any) {
+    return this.notificationsService.findAll(req.user.id);
+  }
+
+  @Get('unread-count')
+  async getUnreadCount(@Request() req: any) {
+    return this.notificationsService.getUnreadCount(req.user.id);
   }
 
   @Patch('read-all')
@@ -18,7 +23,7 @@ export class NotificationsController {
   }
 
   @Patch(':id/read')
-  async markAsRead(@Param('id') id: string, @Request() req: any) {
-    return this.notificationsService.markAsRead(id, req.user.id);
+  async markAsRead(@Request() req: any, @Param('id') id: string) {
+    return this.notificationsService.markAsRead(req.user.id, id);
   }
 }

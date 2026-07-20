@@ -24,7 +24,18 @@ export class UsersService {
     });
   }
 
-  async update(id: string, data: { name?: string; image?: string }): Promise<User> {
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      image?: string;
+      bio?: string;
+      banner?: string;
+      twitterUrl?: string;
+      mediumUrl?: string;
+      githubUrl?: string;
+    }
+  ): Promise<User> {
     return this.prisma.user.update({
       where: { id },
       data,
@@ -36,11 +47,19 @@ export class UsersService {
     const allNotes = await this.prisma.note.findMany({
       where: { userId },
       select: {
+        id: true,
         isPinned: true,
         isArchived: true,
         isTrashed: true,
         isFavorite: true,
         content: true,
+        viewsCount: true,
+        _count: {
+          select: {
+            reactions: true,
+            comments: true,
+          },
+        },
       },
     });
 
@@ -73,12 +92,32 @@ export class UsersService {
 
     // 4. Calculate total word count (excluding trashed notes)
     let totalWordCount = 0;
+    let totalViews = 0;
+    let totalReactions = 0;
+    
     allNotes
       .filter((n) => !n.isTrashed)
       .forEach((n) => {
         const words = n.content.trim().split(/\s+/).filter(Boolean);
         totalWordCount += words.length;
+        totalViews += n.viewsCount;
+        totalReactions += n._count.reactions;
       });
+
+    // 5. Follow count stats
+    const followersCount = await this.prisma.follow.count({ where: { followingId: userId } });
+    const followingCount = await this.prisma.follow.count({ where: { followerId: userId } });
+
+    // 6. Achievements unlocked
+    const achievements = await this.prisma.userAchievement.findMany({
+      where: { userId },
+      select: { badgeId: true, unlockedAt: true },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { streak: true },
+    });
 
     return {
       totalNotes,
@@ -90,6 +129,12 @@ export class UsersService {
       tagsCount,
       totalWordCount,
       folderStats,
+      totalViews,
+      totalReactions,
+      followersCount,
+      followingCount,
+      streak: user?.streak || 0,
+      achievements,
     };
   }
 }

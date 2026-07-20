@@ -78,4 +78,14 @@ export class AiController {
     const matchedIds = await this.aiService.aiSearch(query, notes);
     return { matchedIds };
   }
+
+  @Post('detect-mood')
+  async detectMood(@Body() body: { content: string }) {
+    const { content } = body;
+    if (content === undefined) {
+      throw new BadRequestException('Content is required');
+    }
+    const mood = await this.aiService.detectMood(content);
+    return { mood };
+  }
 }
