@@ -128,6 +128,39 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Social & Platform Enhancements States
+  const [activeFeed, setActiveFeed] = useState<'personal' | 'following' | 'trending'>('personal');
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [noteComments, setNoteComments] = useState<any[]>([]);
+  const [commentContent, setCommentContent] = useState("");
+  const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [reactionStats, setReactionStats] = useState<Record<string, number>>({ LOVE: 0, FIRE: 0, INSIGHTFUL: 0, CLAP: 0, EMOTIONAL: 0 });
+  const [userReacted, setUserReacted] = useState<Record<string, boolean>>({ LOVE: false, FIRE: false, INSIGHTFUL: false, CLAP: false, EMOTIONAL: false });
+  const [showProfileUserId, setShowProfileUserId] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<any | null>(null);
+  const [profileStats, setProfileStats] = useState<any | null>(null);
+  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
+  const [isKindleMode, setIsKindleMode] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [myNotifications, setMyNotifications] = useState<any[]>([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [followedTags, setFollowedTags] = useState<string[]>([]);
+  const [dailyChallenge, setDailyChallenge] = useState("");
+
+  const challenges = [
+    "Write a poem or story using the word 'phosphor' at least three times.",
+    "Describe rain without using the word 'rain' or 'water'.",
+    "Write a story in exactly 100 words.",
+    "Capture the essence of a CRT screen in exactly three lines."
+  ];
+
+  useEffect(() => {
+    const index = new Date().getDate() % challenges.length;
+    setDailyChallenge(challenges[index]);
+  }, []);
+
   // Command Palette State
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [paletteSearch, setPaletteSearch] = useState("");
@@ -261,8 +294,24 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       const fetchedTags = await fetchAPI("/tags", { token });
       setTags(fetchedTags);
 
-      // 3. Fetch notes
-      const endpoint = `/notes?sort=${sortOrder}${selectedFolderId ? `&folderId=${selectedFolderId}` : ""}${selectedTag ? `&tag=${encodeURIComponent(selectedTag)}` : ""}${activeStatus !== "all" ? `&status=${activeStatus}` : ""}${searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : ""}`;
+      // 3. Fetch followed tags
+      const fetchedFollowedTags = await fetchAPI("/tags/following", { token });
+      setFollowedTags(fetchedFollowedTags || []);
+
+      // 4. Fetch notifications
+      const fetchedNotifications = await fetchAPI("/notifications", { token });
+      setMyNotifications(fetchedNotifications || []);
+      setUnreadNotificationsCount((fetchedNotifications || []).filter((n: any) => !n.isRead).length);
+
+      // 5. Fetch notes
+      let endpoint = `/notes?sort=${sortOrder}`;
+      if (selectedFolderId) endpoint += `&folderId=${selectedFolderId}`;
+      if (selectedTag) endpoint += `&tag=${encodeURIComponent(selectedTag)}`;
+      if (activeStatus !== "all") endpoint += `&status=${activeStatus}`;
+      if (searchQuery) endpoint += `&search=${encodeURIComponent(searchQuery)}`;
+      if (activeFeed !== 'personal') endpoint += `&feed=${activeFeed}`;
+      if (selectedCollection) endpoint += `&collection=${encodeURIComponent(selectedCollection)}`;
+
       const fetchedNotes = await fetchAPI(endpoint, { token });
       setNotes(fetchedNotes);
 
@@ -290,7 +339,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     if (!isBooting) {
       loadData();
     }
-  }, [isBooting, selectedFolderId, selectedTag, activeStatus, sortOrder]);
+  }, [isBooting, selectedFolderId, selectedTag, activeStatus, sortOrder, activeFeed, selectedCollection]);
 
   // Load stats when dashboard is opened
   useEffect(() => {
@@ -340,7 +389,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   // --- ACTIONS ---
   // Select active note for editing
-  const selectNote = (note: Note) => {
+  const selectNote = async (note: Note) => {
     setSelectedNote(note);
     setEditTitle(note.title);
     setEditContent(note.content);
@@ -348,6 +397,207 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setEditTagsString(note.tags.map(t => t.name).join(", "));
     setEditColor(note.color || "");
     setFlashcards([]);
+
+    try {
+      const fullNote = await fetchAPI(`/notes/${note.id}`, { token });
+      if (fullNote) {
+        setNoteComments(fullNote.comments || []);
+        
+        // Compute reaction counts
+        const stats: Record<string, number> = { LOVE: 0, FIRE: 0, INSIGHTFUL: 0, CLAP: 0, EMOTIONAL: 0 };
+        const reacted: Record<string, boolean> = { LOVE: false, FIRE: false, INSIGHTFUL: false, CLAP: false, EMOTIONAL: false };
+        
+        (fullNote.reactions || []).forEach((r: any) => {
+          if (stats[r.type] !== undefined) {
+            stats[r.type] += 1;
+          }
+          if (r.userId === user.id) {
+            reacted[r.type] = true;
+          }
+        });
+
+        setReactionStats(stats);
+        setUserReacted(reacted);
+        setSelectedNote(fullNote);
+
+        // Fetch follow status of note author
+        if (fullNote.user && fullNote.user.id !== user.id) {
+          const followCheck = await fetchAPI(`/follows/status/${fullNote.user.id}`, { token });
+          setIsFollowingAuthor(followCheck?.isFollowing || false);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load details for note:", e);
+      setNoteComments([]);
+      setReactionStats({ LOVE: 0, FIRE: 0, INSIGHTFUL: 0, CLAP: 0, EMOTIONAL: 0 });
+      setUserReacted({ LOVE: false, FIRE: false, INSIGHTFUL: false, CLAP: false, EMOTIONAL: false });
+    }
+  };
+
+  // --- SOCIAL HELPER ACTIONS ---
+  const handleToggleReaction = async (type: string) => {
+    if (!selectedNote || selectedNote.id === "new-note-temp") return;
+    playToggleBeep();
+    try {
+      const statsResult = await fetchAPI("/reactions", {
+        token,
+        method: "POST",
+        body: { noteId: selectedNote.id, type }
+      });
+      if (statsResult) {
+        setReactionStats(statsResult.stats);
+        setUserReacted(statsResult.userReacted);
+      }
+    } catch (err) {
+      console.error("Failed to toggle reaction:", err);
+    }
+  };
+
+  const handlePostComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedNote || !commentContent.trim()) return;
+    playKeyClick();
+    try {
+      const newComment = await fetchAPI("/comments", {
+        token,
+        method: "POST",
+        body: { noteId: selectedNote.id, content: commentContent }
+      });
+      if (newComment) {
+        setNoteComments([...noteComments, newComment]);
+        setCommentContent("");
+      }
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+    }
+  };
+
+  const handlePostReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedNote || !replyContent.trim() || !replyingCommentId) return;
+    playKeyClick();
+    try {
+      const newComment = await fetchAPI("/comments", {
+        token,
+        method: "POST",
+        body: { noteId: selectedNote.id, content: replyContent, parentId: replyingCommentId }
+      });
+      if (newComment) {
+        setNoteComments([...noteComments, newComment]);
+        setReplyContent("");
+        setReplyingCommentId(null);
+      }
+    } catch (err) {
+      console.error("Failed to post reply:", err);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    playToggleBeep();
+    try {
+      await fetchAPI(`/comments/${commentId}`, {
+        token,
+        method: "DELETE"
+      });
+      setNoteComments(noteComments.filter(c => c.id !== commentId));
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+    }
+  };
+
+  const handleToggleFollow = async (authorId: string) => {
+    playToggleBeep();
+    try {
+      const followUrl = isFollowingAuthor ? "/follows/unfollow" : "/follows/follow";
+      const res = await fetchAPI(followUrl, {
+        token,
+        method: "POST",
+        body: { followingId: authorId }
+      });
+      setIsFollowingAuthor(res.following);
+      
+      // Update stats if we are looking at profile
+      if (showProfileUserId === authorId) {
+        loadUserProfile(authorId);
+      }
+    } catch (err) {
+      console.error("Failed to toggle follow status:", err);
+    }
+  };
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const userData = await fetchAPI(`/users/${userId}`, { token });
+      const statsData = await fetchAPI(`/users/dashboard`, { token }); // Note: dashboard returns full achievements & follower stats
+      // Load user public notes specifically:
+      const userNotes = await fetchAPI(`/notes?feed=trending`, { token });
+      const filteredNotes = userNotes.filter((n: any) => n.userId === userId);
+      
+      setProfileData({
+        ...userData,
+        notes: filteredNotes
+      });
+      setProfileStats(statsData);
+      
+      const checkFollow = await fetchAPI(`/follows/status/${userId}`, { token });
+      setIsFollowingAuthor(checkFollow?.isFollowing || false);
+    } catch (err) {
+      console.error("Failed to load user profile:", err);
+    }
+  };
+
+  const handleFollowTag = async (tagName: string) => {
+    playToggleBeep();
+    try {
+      await fetchAPI("/tags/follow", {
+        token,
+        method: "POST",
+        body: { tagName }
+      });
+      setFollowedTags([...followedTags, tagName]);
+    } catch (err) {
+      console.error("Failed to follow tag:", err);
+    }
+  };
+
+  const handleUnfollowTag = async (tagName: string) => {
+    playToggleBeep();
+    try {
+      await fetchAPI("/tags/unfollow", {
+        token,
+        method: "POST",
+        body: { tagName }
+      });
+      setFollowedTags(followedTags.filter(t => t !== tagName));
+    } catch (err) {
+      console.error("Failed to unfollow tag:", err);
+    }
+  };
+
+  const handleMarkNotificationRead = async (id: string) => {
+    try {
+      await fetchAPI(`/notifications/${id}/read`, {
+        token,
+        method: "PATCH"
+      });
+      setMyNotifications(myNotifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadNotificationsCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await fetchAPI("/notifications/read-all", {
+        token,
+        method: "PATCH"
+      });
+      setMyNotifications(myNotifications.map(n => ({ ...n, isRead: true })));
+      setUnreadNotificationsCount(0);
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+    }
   };
 
   const createNewNote = () => {

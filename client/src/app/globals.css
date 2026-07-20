@@ -127,6 +127,91 @@
   --font-family-body: 'Courier Prime', monospace;
 }
 
+/* Dracula Theme */
+[data-theme='dracula'] {
+  --bg-color: #282a36;
+  --fg-color: #f8f8f2;
+  --fg-glow: 0 0 6px rgba(248, 248, 242, 0.4);
+  --border-color: #44475a;
+  --border-glow: none;
+  --accent-color: #50fa7b;
+  --panel-bg: #1d1f27;
+  --crt-scanline-opacity: 0.12;
+  --font-family-title: 'VT323', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
+
+/* AMOLED Theme */
+[data-theme='amoled'] {
+  --bg-color: #000000;
+  --fg-color: #ffffff;
+  --fg-glow: none;
+  --border-color: #222222;
+  --border-glow: none;
+  --accent-color: #00ffcc;
+  --panel-bg: #111111;
+  --crt-scanline-opacity: 0.0;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
+
+/* Paper Theme */
+[data-theme='paper'] {
+  --bg-color: #f4ecd8;
+  --fg-color: #5c4033;
+  --fg-glow: none;
+  --border-color: #d2b48c;
+  --border-glow: none;
+  --accent-color: #8b0000;
+  --panel-bg: #fcf8ed;
+  --crt-scanline-opacity: 0.0;
+  --font-family-title: Georgia, serif;
+  --font-family-body: Georgia, serif;
+}
+
+/* Solarized Theme */
+[data-theme='solarized'] {
+  --bg-color: #002b36;
+  --fg-color: #839496;
+  --fg-glow: 0 0 4px rgba(131, 148, 150, 0.5);
+  --border-color: #073642;
+  --border-glow: none;
+  --accent-color: #2aa198;
+  --panel-bg: #073642;
+  --crt-scanline-opacity: 0.1;
+  --font-family-title: 'VT323', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
+
+/* Sakura Theme */
+[data-theme='sakura'] {
+  --bg-color: #fff0f5;
+  --fg-color: #8b008b;
+  --fg-glow: 0 0 4px rgba(255, 105, 180, 0.4);
+  --border-color: #ffb6c1;
+  --border-glow: none;
+  --accent-color: #ff69b4;
+  --panel-bg: #ffe4e1;
+  --crt-scanline-opacity: 0.05;
+  --font-family-title: 'Share Tech Mono', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
+
+/* Midnight Theme */
+[data-theme='midnight'] {
+  --bg-color: #020617;
+  --fg-color: #38bdf8;
+  --fg-glow: 0 0 8px rgba(56, 189, 248, 0.5);
+  --border-color: #1e293b;
+  --border-glow: none;
+  --accent-color: #f43f5e;
+  --panel-bg: #0b0f19;
+  --crt-scanline-opacity: 0.15;
+  --font-family-title: 'Press Start 2P', monospace;
+  --font-family-body: 'Share Tech Mono', monospace;
+}
+
+
 body {
   background-color: var(--bg-color);
   color: var(--fg-color);

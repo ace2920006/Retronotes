@@ -12,9 +12,22 @@ export class UsersService {
     });
   }
 
-  async findOneById(id: string): Promise<User | null> {
+  async findOneById(id: string): Promise<any | null> {
     return this.prisma.user.findUnique({
       where: { id },
+      include: {
+        followers: {
+          select: {
+            followerId: true,
+          },
+        },
+        following: {
+          select: {
+            followingId: true,
+          },
+        },
+        achievements: true,
+      },
     });
   }
 

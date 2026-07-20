@@ -55,4 +55,55 @@ export class TagsService {
       where: { id },
     });
   }
+
+  async followTag(userId: string, tagName: string) {
+    const existing = await this.prisma.tagFollow.findUnique({
+      where: {
+        tagName_userId: {
+          tagName,
+          userId,
+        },
+      },
+    });
+
+    if (existing) {
+      return { followed: true };
+    }
+
+    await this.prisma.tagFollow.create({
+      data: {
+        tagName,
+        userId,
+      },
+    });
+
+    return { followed: true };
+  }
+
+  async unfollowTag(userId: string, tagName: string) {
+    const existing = await this.prisma.tagFollow.findUnique({
+      where: {
+        tagName_userId: {
+          tagName,
+          userId,
+        },
+      },
+    });
+
+    if (existing) {
+      await this.prisma.tagFollow.delete({
+        where: { id: existing.id },
+      });
+    }
+
+    return { followed: false };
+  }
+
+  async getFollowedTags(userId: string) {
+    const follows = await this.prisma.tagFollow.findMany({
+      where: { userId },
+      orderBy: { tagName: 'asc' },
+    });
+    return follows.map((f) => f.tagName);
+  }
 }

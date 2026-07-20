@@ -21,4 +21,19 @@ export class TagsController {
   async remove(@Param('id') id: string, @Request() req: any) {
     return this.tagsService.remove(id, req.user.id);
   }
+
+  @Post('follow')
+  async follow(@Request() req: any, @Body() body: { tagName: string }) {
+    return this.tagsService.followTag(req.user.id, body.tagName);
+  }
+
+  @Post('unfollow')
+  async unfollow(@Request() req: any, @Body() body: { tagName: string }) {
+    return this.tagsService.unfollowTag(req.user.id, body.tagName);
+  }
+
+  @Get('following')
+  async getFollowing(@Request() req: any) {
+    return this.tagsService.getFollowedTags(req.user.id);
+  }
 }
