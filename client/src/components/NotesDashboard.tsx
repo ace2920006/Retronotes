@@ -12,6 +12,8 @@ import {
   setSoundEnabled
 } from "@/lib/retroAudio";
 import CassettePlayer from "./CassettePlayer";
+import { THEMES, getThemeDef, saveThemeSettings, loadThemeSettings } from "@/lib/themeConfig";
+import { ThemeGalleryModal } from "./ThemeGalleryModal";
 
 
 interface Tag {
@@ -136,6 +138,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   // Keyboard shortcut help modal
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
+  const [showThemeGallery, setShowThemeGallery] = useState(false);
   
   // Folders modal CRUD
   const [showFolderModal, setShowFolderModal] = useState(false);

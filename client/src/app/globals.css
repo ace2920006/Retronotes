@@ -261,7 +261,7 @@ h1, h2, h3, h4, h5, h6, .retro-title {
   background-size: 100% 4px;
   z-index: 9999;
   pointer-events: none;
-  opacity: var(--crt-scanline-opacity);
+  opacity: calc(var(--crt-scanline-opacity, 0.15) * var(--user-scanline-multiplier, 1));
 }
 
 /* Flicker Animation for Phosphor Simulation */
@@ -271,8 +271,33 @@ h1, h2, h3, h4, h5, h6, .retro-title {
   100% { opacity: 0.99; }
 }
 
-.crt-flicker {
-  animation: crt-flicker var(--crt-flicker) infinite;
+.crt-flicker,
+.crt-flicker-active {
+  animation: crt-flicker var(--crt-flicker, 0.15s) infinite;
+}
+
+/* CRT Theme Switch Power-Flash Glitch Animation */
+@keyframes crt-power-flash {
+  0% {
+    filter: brightness(2.8) contrast(1.8) saturate(1.8);
+    opacity: 0.8;
+  }
+  25% {
+    filter: brightness(0.2) contrast(1.5);
+    opacity: 0.9;
+  }
+  50% {
+    filter: brightness(1.6) contrast(1.2);
+    opacity: 0.95;
+  }
+  100% {
+    filter: brightness(1) contrast(1);
+    opacity: 1;
+  }
+}
+
+.crt-theme-flash {
+  animation: crt-power-flash 0.35s ease-out;
 }
 
 /* Retro Borders & Boxes */
