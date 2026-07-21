@@ -394,8 +394,17 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const toggleTheme = (newTheme: string) => {
     playToggleBeep();
     setTheme(newTheme);
-    localStorage.setItem("retronotes-theme", newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
+    saveThemeSettings({ themeId: newTheme });
+
+    const crtContainer = document.querySelector(".crt-container");
+    if (crtContainer) {
+      crtContainer.classList.remove("crt-theme-flash");
+      void (crtContainer as HTMLElement).offsetWidth;
+      crtContainer.classList.add("crt-theme-flash");
+      setTimeout(() => {
+        crtContainer.classList.remove("crt-theme-flash");
+      }, 360);
+    }
   };
 
   const toggleCrt = () => {
@@ -469,7 +478,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       const statsResult = await fetchAPI("/reactions", {
         token,
         method: "POST",
-        body: { noteId: selectedNote.id, type }
+        body: JSON.stringify({ noteId: selectedNote.id, type })
       });
       if (statsResult) {
         setReactionStats(statsResult.stats);
@@ -488,7 +497,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       const newComment = await fetchAPI("/comments", {
         token,
         method: "POST",
-        body: { noteId: selectedNote.id, content: commentContent }
+        body: JSON.stringify({ noteId: selectedNote.id, content: commentContent })
       });
       if (newComment) {
         setNoteComments([...noteComments, newComment]);
@@ -507,7 +516,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       const newComment = await fetchAPI("/comments", {
         token,
         method: "POST",
-        body: { noteId: selectedNote.id, content: replyContent, parentId: replyingCommentId }
+        body: JSON.stringify({ noteId: selectedNote.id, content: replyContent, parentId: replyingCommentId })
       });
       if (newComment) {
         setNoteComments([...noteComments, newComment]);
@@ -532,14 +541,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
-  const handleToggleFollow = async (authorId: string) => {
+  const handleToggleFollowAuthor = async (authorId: string) => {
     playToggleBeep();
     try {
       const followUrl = isFollowingAuthor ? "/follows/unfollow" : "/follows/follow";
       const res = await fetchAPI(followUrl, {
         token,
         method: "POST",
-        body: { followingId: authorId }
+        body: JSON.stringify({ followingId: authorId })
       });
       setIsFollowingAuthor(res.following);
       
@@ -579,7 +588,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       await fetchAPI("/tags/follow", {
         token,
         method: "POST",
-        body: { tagName }
+        body: JSON.stringify({ tagName })
       });
       setFollowedTags([...followedTags, tagName]);
     } catch (err) {
@@ -593,7 +602,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       await fetchAPI("/tags/unfollow", {
         token,
         method: "POST",
-        body: { tagName }
+        body: JSON.stringify({ tagName })
       });
       setFollowedTags(followedTags.filter(t => t !== tagName));
     } catch (err) {
@@ -954,11 +963,17 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         e.preventDefault();
         toggleProperty('isPinned');
       }
+      // Ctrl + T (Theme Studio Gallery)
+      if (e.ctrlKey && e.key === "t") {
+        e.preventDefault();
+        setShowThemeGallery((prev) => !prev);
+      }
       // Esc (Close help/drawers)
       if (e.key === "Escape") {
         setShowShortcutHelp(false);
         setAiOpen(false);
         setShowFolderModal(false);
+        setShowThemeGallery(false);
       }
     };
 
@@ -1124,7 +1139,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
-  const themesList = ["green", "amber", "cyberpunk", "slate", "light"];
+  const themesList = THEMES.map((t) => t.id);
+  const activeThemeObj = getThemeDef(theme);
   
   const cycleTheme = () => {
     const currentIndex = themesList.indexOf(theme);
@@ -1265,14 +1281,31 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   const getCommandPaletteOptions = () => {
     if (paletteActiveView === 'theme') {
-      return [
-        { id: 'theme-green', label: '🟢 CRT Green', action: () => { toggleTheme('green'); setShowCommandPalette(false); } },
-        { id: 'theme-amber', label: '🟠 Amber', action: () => { toggleTheme('amber'); setShowCommandPalette(false); } },
-        { id: 'theme-neon', label: '🔵 Neon', action: () => { toggleTheme('cyberpunk'); setShowCommandPalette(false); } },
-        { id: 'theme-dark', label: '⚫ Dark', action: () => { toggleTheme('slate'); setShowCommandPalette(false); } },
-        { id: 'theme-light', label: '⚪ Light', action: () => { toggleTheme('light'); setShowCommandPalette(false); } },
-        { id: 'theme-back', label: '◀ Back', action: () => setPaletteActiveView('main') },
+      const themeItems = THEMES.map((t) => ({
+        id: `theme-${t.id}`,
+        label: `${t.emoji} ${t.name} — ${t.description.slice(0, 45)}...`,
+        action: () => {
+          toggleTheme(t.id);
+          setShowCommandPalette(false);
+        },
+      }));
+
+      const options = [
+        {
+          id: 'open-studio',
+          label: '🎨 Open Theme Studio & CRT Customizer Gallery...',
+          action: () => {
+            setShowThemeGallery(true);
+            setShowCommandPalette(false);
+          },
+        },
+        ...themeItems,
+        { id: 'theme-back', label: '◀ Back to Main Commands', action: () => setPaletteActiveView('main') },
       ];
+
+      if (!paletteSearch.trim()) return options;
+
+      return options.filter((o) => o.label.toLowerCase().includes(paletteSearch.toLowerCase()));
     }
 
     const defaultCommands = [
@@ -1524,14 +1557,24 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               {activeView === 'editor' ? '📊 STATS' : '📝 NOTES'}
             </button>
 
-            {/* Quick Theme Switcher */}
-            <button
-              onClick={cycleTheme}
-              className="retro-button px-3 py-1.5 text-xs font-mono uppercase flex items-center gap-1.5"
-              title="Cycle display theme"
-            >
-              🎨 Theme: {theme === 'green' ? '🟢 CRT Green' : theme === 'amber' ? '🟠 Amber' : theme === 'cyberpunk' ? '🔵 Neon' : theme === 'slate' ? '⚫ Dark' : theme === 'light' ? '⚪ Light' : `🎨 ${theme.toUpperCase()}`}
-            </button>
+            {/* Quick Theme Switcher & Theme Studio Button */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowThemeGallery(true)}
+                className="retro-button px-3 py-1.5 text-xs font-mono uppercase flex items-center gap-1.5 font-bold"
+                title="Open Theme Studio & Display Registry (Ctrl + T)"
+              >
+                <span>{activeThemeObj.emoji}</span>
+                <span>Theme: {activeThemeObj.name}</span>
+              </button>
+              <button
+                onClick={cycleTheme}
+                className="retro-button px-2 py-1.5 text-xs font-mono"
+                title="Cycle next display theme"
+              >
+                ►
+              </button>
+            </div>
 
             {/* Toggle CRT overlay */}
             <button
@@ -2458,6 +2501,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
           </div>
         </div>
       )}
+
+      {/* Theme Gallery & CRT Customizer Modal */}
+      <ThemeGalleryModal
+        isOpen={showThemeGallery}
+        onClose={() => setShowThemeGallery(false)}
+        currentThemeId={theme}
+        onSelectTheme={toggleTheme}
+      />
     </div>
   );
 }

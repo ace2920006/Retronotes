@@ -22,13 +22,21 @@ export default function RootLayout({
               try {
                 const theme = localStorage.getItem('retronotes-theme') || 'green';
                 document.documentElement.setAttribute('data-theme', theme);
+                const scanlineOpacity = localStorage.getItem('retronotes-scanline-opacity');
+                if (scanlineOpacity !== null) {
+                  document.documentElement.style.setProperty('--user-scanline-multiplier', scanlineOpacity);
+                }
                 const crt = localStorage.getItem('retronotes-crt') !== 'false';
                 if (crt) {
                   document.documentElement.classList.add('crt-effect');
-                  document.documentElement.classList.add('crt-flicker');
                 } else {
                   document.documentElement.classList.remove('crt-effect');
-                  document.documentElement.classList.remove('crt-flicker');
+                }
+                const flicker = localStorage.getItem('retronotes-flicker-enabled') !== 'false';
+                if (flicker) {
+                  document.documentElement.classList.add('crt-flicker-active');
+                } else {
+                  document.documentElement.classList.remove('crt-flicker-active');
                 }
               } catch (e) {}
             `,
