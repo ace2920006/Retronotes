@@ -1,12 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
-const adapter = new PrismaBetterSqlite3({ url: 'dev.db' });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding RetroNotes / InkVerse database...');
+  console.log('Seeding RetroNotes MongoDB Atlas database...');
 
   // Clean existing data in reverse order of relations
   await prisma.notification.deleteMany({});
@@ -57,7 +55,7 @@ async function main() {
       name: 'Solomon Poet',
       password: hashedPassword,
       image: '🦉',
-      bio: 'InkVerse elder. Studying ancient meters and modern hypertexts.',
+      bio: 'RetroNotes elder. Studying ancient meters and modern hypertexts.',
       banner: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop',
       streak: 0,
     },
