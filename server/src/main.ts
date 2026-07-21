@@ -23,6 +23,7 @@ async function bootstrap() {
   }));
 
   await app.listen(process.env.PORT ?? 3000);
-  console.log(`[InkVerse Backend] Running on: http://localhost:${process.env.PORT ?? 3000}`);
+  console.log(`[RetroNotes Backend] Running on: http://localhost:${process.env.PORT ?? 3000}`);
 }
+
 bootstrap();

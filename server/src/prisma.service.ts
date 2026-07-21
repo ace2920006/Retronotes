@@ -1,18 +1,17 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    const adapter = new PrismaBetterSqlite3({ url: 'dev.db' });
     super({
-      adapter,
       log: ['query', 'info', 'warn', 'error'],
     });
   }
 
   async onModuleInit() {
-    console.log('[PrismaService] Database connected successfully.');
+    await this.$connect();
+    console.log('[PrismaService] MongoDB Atlas connected successfully.');
   }
 }
+

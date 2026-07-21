@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file for MongoDB Atlas / MongoDB databases.
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -6,11 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(uuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
   email         String?   @unique
   password      String?
@@ -41,30 +42,31 @@ model User {
 }
 
 model Folder {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  color     String?  // custom color styling (e.g. hex or tailwind class)
+  color     String?  // custom color styling
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes     Note[]
 }
 
 model Tag {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes     Note[]   // Implicit many-to-many
+  noteIds   String[] @db.ObjectId
+  notes     Note[]   @relation(fields: [noteIds], references: [id])
 
   @@unique([name, userId])
 }
 
 model Note {
-  id                 String   @id @default(uuid())
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   title              String
   content            String
   isPinned           Boolean  @default(false)
@@ -77,28 +79,30 @@ model Note {
   uniqueReadersCount Int      @default(0)
   mood               String?
   summary            String?
-  collection         String?  // Poetry, Stories, Personal Journal, Programming, Quotes, Articles
+  collection         String?  // Personal Journal, Ideas, Architecture, Notes, Quotes, Articles
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   
-  userId             String
+  userId             String   @db.ObjectId
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folderId           String?
+  folderId           String?  @db.ObjectId
   folder             Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  tags               Tag[]    // Implicit many-to-many
+  tagIds             String[] @db.ObjectId
+  tags               Tag[]    @relation(fields: [tagIds], references: [id])
   color              String?
 
-  seriesId           String?
+  seriesId           String?  @db.ObjectId
   series             Series?  @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   comments           Comment[]
   reactions          Reaction[]
-  readingLists       ReadingList[]
+  readingListIds     String[] @db.ObjectId
+  readingLists       ReadingList[] @relation(fields: [readingListIds], references: [id])
 }
 
 model Follow {
-  id          String   @id @default(uuid())
-  followerId  String
-  followingId String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  followerId  String   @db.ObjectId
+  followingId String   @db.ObjectId
   follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
   following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
@@ -107,9 +111,9 @@ model Follow {
 }
 
 model TagFollow {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   tagName   String
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
@@ -117,11 +121,11 @@ model TagFollow {
 }
 
 model Reaction {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   type      String   // LOVE, FIRE, INSIGHTFUL, CLAP, EMOTIONAL
-  noteId    String
+  noteId    String   @db.ObjectId
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
@@ -129,47 +133,47 @@ model Reaction {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  noteId    String
+  noteId    String   @db.ObjectId
   note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  authorId  String
+  authorId  String   @db.ObjectId
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parentId  String?
-  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId  String?  @db.ObjectId
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies   Comment[] @relation("CommentReplies")
 }
 
 model Series {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
-  userId      String
+  userId      String   @db.ObjectId
   createdAt   DateTime @default(now())
   notes       Note[]
 }
 
 model Notification {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   type        String   // FOLLOW, COMMENT, REACTION, PUBLISH, MENTION
-  userId      String   // Target user
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  senderId    String?  // Actor user
+  senderId    String?
   senderName  String?
   senderImage String?
-  noteId      String?  // Target note/post if applicable
-  commentId   String?  // Target comment if applicable
+  noteId      String?
+  commentId   String?
   content     String
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
 }
 
 model UserAchievement {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   badgeId     String   // FIRST_NOTE, SEVEN_DAY_STREAK, HUNDRED_LIKES, FIFTY_NOTES, FIRST_COMMENT, FIRST_FOLLOWER
-  userId      String
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   unlockedAt  DateTime @default(now())
 
@@ -177,11 +181,13 @@ model UserAchievement {
 }
 
 model ReadingList {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  userId      String
+  userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes       Note[]
+  noteIds     String[] @db.ObjectId
+  notes       Note[]   @relation(fields: [noteIds], references: [id])
   createdAt   DateTime @default(now())
 }
+
 
