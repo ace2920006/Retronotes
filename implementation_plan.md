@@ -1,46 +1,42 @@
-# InkVerse Implementation Plan
+# Retro Notes Implementation Plan
 
-**Goal Description**: Build InkVerse, a social home for poets, novelists, storytellers, and dreamers. The platform focuses on prioritizing meaningful writing, constructive feedback, and literary culture over endless scrolling algorithms.
+**Goal Description**: Build Retro Notes, a modern note-taking application styled as a retro terminal complete with CRT filters, dual-pane Markdown editing, and Gemini AI companion.
 
 > [!NOTE]
-> **Vision:** "Every thought deserves a page. Every writer deserves a community." InkVerse is a digital world where people write instead of scroll.
+> **Vision:** "Every thought deserves a page." Retro Notes combines retro aesthetic computing with modern cloud technology.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - **Tech Stack Validation**: The proposed tech stack separates frontend (Next.js) and backend (NestJS). Would you prefer a unified full-stack approach using Next.js App Router for both frontend and backend to simplify the Phase 1 MVP, or stick to the strict separation with NestJS?
-> - **Database Setup**: We will need a PostgreSQL instance (e.g., Supabase or Neon). Please confirm if you have an existing database provider in mind or if we should set one up during the project initialization.
-> - **Authentication**: We plan to use Auth.js. Which OAuth providers (e.g., Google, GitHub) should we prioritize for the MVP?
+> - **Tech Stack Validation**: The tech stack separates frontend (Next.js 16) and backend (NestJS 11).
+> - **Database Setup**: MongoDB Atlas cluster storing Users, Notes, Comments, Reactions, Tags, and Folders.
+> - **Authentication**: NextAuth with Passport JWT credentials.
 
 ## Open Questions
 
 > [!WARNING]
-> - **Design System**: Do you have any specific color palettes or typography choices in mind that reflect the "InkVerse" brand (e.g., Moonlight theme)?
-> - **Hosting**: Vercel for Frontend and Railway for Backend is proposed. Is this the definitive choice?
-> - **MVP Scope**: Should we prioritize any specific "Types of Posts" (e.g., just Thoughts and Poetry) for Phase 1 to accelerate the initial launch?
+> - **Design System**: 5 retro display monitor themes (Amber, Green, Win95, Cyberpunk, Carbon).
+> - **Database**: MongoDB Atlas database connection string in `server/.env`.
 
 ## Proposed Architecture and Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 15 (App Router) + React + TypeScript
-- **Styling & UI**: Tailwind CSS + shadcn/ui
-- **State Management**: Zustand (Global) + TanStack Query (Server State)
+- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript
+- **Styling & UI**: Tailwind CSS v4 + CRT CSS resets
 
 ### Backend
-- **Framework**: NestJS
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Authentication**: Auth.js (NextAuth)
-- **Search & Real-time**: Meilisearch (Search), Socket.IO (Real-time), Firebase Cloud Messaging (Notifications)
-- **Storage**: Supabase Storage
+- **Framework**: NestJS 11
+- **Database**: MongoDB Atlas
+- **ORM**: Prisma v7
+- **Authentication**: Passport JWT + NextAuth
 
 ## MVP Roadmap & Implementation Steps
 
 ### Phase 1: Core Foundation (MVP 1.0) - *Current Focus*
 1. **Project Initialization**
-   - Setup Next.js 15 frontend repository with Tailwind & shadcn/ui.
+   - Setup Next.js 16 frontend repository with Tailwind & CRT theme engine.
    - Setup NestJS backend repository.
-   - Initialize PostgreSQL database with Prisma schema (Users, Posts, Likes, Comments).
+   - Initialize MongoDB Atlas database with Prisma schema (Users, Notes, Reactions, Comments).
 2. **Authentication & User Profiles**
    - Implement Auth.js for user signup/login.
    - Create basic User Profile pages (Bio, Avatar, Follower counts).

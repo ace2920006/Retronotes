@@ -1,8 +1,8 @@
-# 🖊️ InkVerse — Architecture Guide
+# 🖊️ Retro Notes — Architecture Guide
 
-> A social media platform for poets and writers.  
-> **Backend:** NestJS + Prisma + PostgreSQL  
-> **Frontend:** Next.js 15 (App Router) + NextAuth + Tailwind CSS
+> A modern note-taking and writing platform with a retro UI.  
+> **Backend:** NestJS + Prisma + MongoDB Atlas  
+> **Frontend:** Next.js 16 (App Router) + NextAuth + Tailwind CSS
 
 ---
 
@@ -27,10 +27,10 @@
               │   - JWT Guard                  │
               │   - Prisma ORM                 │
               └───────────────┬───────────────┘
-                              │ SQL queries
+                              │ Mongo Connection
               ┌───────────────▼───────────────┐
-              │        PostgreSQL Database     │
-              │   Users, Posts, Comments, Likes│
+              │     MongoDB Atlas Database     │
+              │   Users, Notes, Comments, Tags │
               └────────────────────────────────┘
 ```
 
@@ -40,44 +40,46 @@
 
 ```
 User
- ├── id (uuid)
+ ├── id (ObjectId)
  ├── name, email, bio, image
  ├── emailVerified, createdAt, updatedAt
- ├── posts[]     → Post
+ ├── notes[]     → Note
  ├── comments[]  → Comment
- └── likes[]     → Like
+ └── reactions[] → Reaction
 
-Post
- ├── id (uuid)
- ├── title?, content, type (Poetry | Haiku | Story | Thought)
+Note
+ ├── id (ObjectId)
+ ├── title, content, mood, summary, collection
  ├── createdAt, updatedAt
- ├── authorId    → User
+ ├── userId      → User
  ├── comments[]  → Comment (cascade delete)
- └── likes[]     → Like (cascade delete)
+ └── reactions[] → Reaction (cascade delete)
 
 Comment
  ├── id, content, createdAt, updatedAt
- ├── postId      → Post (cascade delete)
+ ├── noteId      → Note (cascade delete)
  └── authorId    → User
 
-Like
- ├── id, createdAt
- ├── postId      → Post (cascade delete)
+Reaction
+ ├── id, type, createdAt
+ ├── noteId      → Note (cascade delete)
  ├── userId      → User
- └── [unique: postId + userId]   ← prevents duplicate likes
+ └── [unique: noteId + userId + type]
 ```
 
 ---
 
-## Backend Modules (Planned)
+## Backend Modules
 
 ```
 AppModule
- ├── AuthModule       — register, login, JWT strategy
- ├── UsersModule      — profile read/update
- ├── PostsModule      — feed, CRUD, type filter
- ├── CommentsModule   — per-post CRUD
- └── LikesModule      — toggle like/unlike
+ ├── AuthModule          — register, login, JWT strategy
+ ├── UsersModule         — profile read/update
+ ├── NotesModule         — notes CRUD & search
+ ├── CommentsModule      — per-note CRUD
+ ├── ReactionsModule     — toggle reaction
+ ├── TagsModule          — note tagging & tag follow
+ └── NotificationsModule — real-time activity alerts
 ```
 
 Each module follows the NestJS pattern:
@@ -92,31 +94,11 @@ Guards (e.g., `JwtAuthGuard`) are applied at controller level to protect mutatio
 ## Frontend Page Architecture
 
 ```
-layout.tsx              ← Providers, Navbar, session context
+layout.tsx              ← Providers, CRT overlay, session context
 │
-├── page.tsx            ← Public landing feed  (Server Component)
-├── login/page.tsx      ← Login form           (Server Actions → NextAuth)
-├── profile/[id]/page.tsx  ← User profile      (Server Component, fetches API)
-├── feed/page.tsx       ← Auth-gated feed      (protected, infinite scroll)
-├── write/page.tsx      ← Post editor          (Client Component, form submit)
-├── post/[id]/page.tsx  ← Full post + comments (Server Component)
-└── explore/page.tsx    ← Discovery            (Server Component)
-```
-
-### Component Hierarchy (Planned)
-```
-Navbar
- ├── UserAvatar
- └── WriteButton
-
-PostCard
- ├── UserAvatar
- ├── PostContent (font-serif rendering)
- └── PostActions (Like | Comment | Save | Listen)
-
-CommentSection
- ├── CommentList
- └── CommentForm
+├── page.tsx            ← RetroNotes OS Terminal / Notes Dashboard
+├── login/page.tsx      ← Login form (Server Actions → NextAuth)
+└── loading.tsx         ← Retro boot loader UI
 ```
 
 ---
@@ -134,16 +116,17 @@ CommentSection
 
 ---
 
-## Post Types
+## Content Collections
 
-InkVerse supports four content types, stored in `Post.type`:
+Retro Notes supports flexible note collections:
 
-| Type     | Description                            |
-|----------|----------------------------------------|
-| `Poetry` | Multi-stanza poems                     |
-| `Haiku`  | 3-line haiku (5-7-5 syllables)         |
-| `Story`  | Short prose / flash fiction            |
-| `Thought`| Single-line thoughts / aphorisms       |
+| Collection         | Description                               |
+|--------------------|-------------------------------------------|
+| `Personal Journal` | Daily logs, thoughts & reflections        |
+| `Ideas`            | Brainstorming & project outlines          |
+| `Architecture`     | Technical diagrams & docs                 |
+| `Quotes`           | Excerpts & inspirating quotes             |
+| `Articles`         | Drafts & long-form writing                |
 
 ---
 
@@ -153,4 +136,5 @@ InkVerse supports four content types, stored in `Post.type`:
 |--------------|------|
 | NestJS API    | 3000 |
 | Next.js App   | 3001 |
-| PostgreSQL    | 5432 |
+| MongoDB Atlas | Cloud/27017 |
+

@@ -26,7 +26,7 @@ A modern note-taking application with a retro-inspired UI.
 
 ### Backend Server
 - **Framework**: NestJS (TypeScript controllers & service architecture)
-- **Database Engine**: SQLite 3 with Prisma ORM
+- **Database Engine**: MongoDB Atlas with Prisma ORM
 - **AI Integrations**: Gemini API (Google AI)
 
 ## Installation
@@ -43,14 +43,13 @@ npm install
 ```
 Create a `.env` file in the `server/` folder:
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="mongodb+srv://<username>:<password>@cluster0.mongodb.net/retronotes?retryWrites=true&w=majority"
 JWT_SECRET="your-jwt-auth-secret-key"
 GEMINI_API_KEY="your-google-gemini-api-key"
 ```
 Rebuild database client and seed notes:
 ```bash
 npx prisma generate
-npx prisma db push --force-reset
 npx prisma db seed
 ```
 Run NestJS dev server:

@@ -1,6 +1,6 @@
-# 🖊️ InkVerse — Frontend
+# 🖊️ Retro Notes — Frontend
 
-> **InkVerse** is a poet & writer social media platform. Share your haikus, poems, stories, and midnight thoughts. Follow the voices that move you. *Where Stories Meet Souls.*
+> **Retro Notes** is a modern note-taking application with a retro-inspired CRT monitor UI, Markdown editor, and Gemini AI companion.
 
 ---
 
@@ -8,19 +8,18 @@
 
 | Layer         | Technology                                  |
 |--------------|----------------------------------------------|
-| Framework     | [Next.js](https://nextjs.org/) 15 (App Router) |
+| Framework     | [Next.js](https://nextjs.org/) 16 (App Router) |
 | Language      | TypeScript                                   |
-| Styling       | Tailwind CSS                                 |
+| Styling       | Tailwind CSS + CRT Customs                  |
 | Auth          | [NextAuth.js](https://next-auth.js.org/) v5  |
 | API Client    | Fetch (to NestJS backend at port 3000)       |
-| Font          | Geist (Vercel)                               |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-inkverse-frontend/
+retronotes-client/
 │
 ├── public/
 │   └── (static assets — logo, og-image, fonts)
@@ -145,7 +144,7 @@ npm run dev
 
 Open [http://localhost:3001](http://localhost:3001) in your browser.
 
-> **Tip:** Run the backend first (`npm run start:dev` in `inkverse-backend`), then start the frontend.
+> **Tip:** Run the backend first (`npm run start:dev` in `server`), then start the frontend.
 
 ---
 

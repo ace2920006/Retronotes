@@ -189,7 +189,7 @@ async function main() {
 
   await prisma.comment.create({
     data: {
-      content: 'Under current SQLite assumptions, yes! But we might need PostgreSQL shielding in production.',
+      content: 'Under current MongoDB Atlas schema assumptions, yes! Document storage scales effortlessly in production.',
       noteId: note1.id,
       authorId: luna.id,
       parentId: comment1.id,

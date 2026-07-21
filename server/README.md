@@ -1,6 +1,6 @@
-# 🖊️ InkVerse — Backend API
+# 🖊️ Retro Notes — Backend API
 
-> **InkVerse** is a social media platform for poets, writers, and storytellers. Share haikus, poems, short stories, and thoughts. Follow your favourite voices. Discover words that move you.
+> **Retro Notes** is a modern note-taking and document management backend platform with NestJS and Prisma ORM, backed by MongoDB Atlas.
 
 ---
 
@@ -11,8 +11,8 @@
 | Framework    | [NestJS](https://nestjs.com/) v11    |
 | Language     | TypeScript                           |
 | ORM          | [Prisma](https://www.prisma.io/) v7  |
-| Database     | PostgreSQL                           |
-| Auth         | NextAuth (credentials, to be expanded) |
+| Database     | MongoDB Atlas                        |
+| Auth         | Passport JWT + NextAuth             |
 | Linting      | ESLint + Prettier                    |
 | Testing      | Jest + Supertest                     |
 
@@ -21,10 +21,10 @@
 ## 📁 Project Structure
 
 ```
-inkverse-backend/
+retronotes-backend/
 │
 ├── prisma/
-│   └── schema.prisma          # Database models: User, Post, Comment, Like
+│   └── schema.prisma          # Database models: User, Note, Comment, Reaction, Folder, Tag
 │
 ├── src/
 │   ├── main.ts                # NestJS entry point — starts HTTP server
@@ -33,47 +33,19 @@ inkverse-backend/
 │   ├── app.service.ts         # Root service
 │   ├── prisma.service.ts      # Prisma client wrapper (injectable singleton)
 │   │
-│   ├── users/                 # [TODO] User management module
-│   │   ├── users.module.ts
-│   │   ├── users.controller.ts  # GET /users/:id, PATCH /users/:id
-│   │   ├── users.service.ts
-│   │   └── dto/
-│   │       └── update-user.dto.ts
-│   │
-│   ├── posts/                 # [TODO] Poems / Stories / Thoughts module
-│   │   ├── posts.module.ts
-│   │   ├── posts.controller.ts  # CRUD for posts, GET /feed
-│   │   ├── posts.service.ts
-│   │   └── dto/
-│   │       ├── create-post.dto.ts
-│   │       └── update-post.dto.ts
-│   │
-│   ├── comments/              # [TODO] Comments on posts
-│   │   ├── comments.module.ts
-│   │   ├── comments.controller.ts
-│   │   └── comments.service.ts
-│   │
-│   ├── likes/                 # [TODO] Like/unlike a post
-│   │   ├── likes.module.ts
-│   │   ├── likes.controller.ts
-│   │   └── likes.service.ts
-│   │
-│   └── auth/                  # [TODO] Auth module (JWT + guards)
-│       ├── auth.module.ts
-│       ├── auth.controller.ts   # POST /auth/login, /auth/register
-│       ├── auth.service.ts
-│       └── guards/
-│           └── jwt-auth.guard.ts
-│
-├── generated/
-│   └── prisma/                # Auto-generated Prisma client (do not edit)
+│   ├── users/                 # User management module
+│   ├── notes/                 # Notes & terminal document management
+│   ├── comments/              # Threaded comments
+│   ├── reactions/             # Post reactions
+│   ├── tags/                  # Tagging & follow tags
+│   └── auth/                  # JWT auth module
 │
 ├── test/
 │   ├── app.e2e-spec.ts        # End-to-end tests
 │   └── jest-e2e.json
 │
 ├── dist/                      # Compiled JS output (auto-generated)
-├── .env                       # Environment variables (see below)
+├── .env                       # Environment variables
 ├── nest-cli.json              # NestJS CLI config
 ├── prisma.config.ts           # Prisma config overrides
 ├── tsconfig.json
@@ -85,28 +57,27 @@ inkverse-backend/
 ## 🗄️ Database Models
 
 ```
-User      — id, name, email, bio, image, emailVerified, createdAt
-Post      — id, title, content, type (Poetry/Haiku/Story/Thought), authorId
-Comment   — id, content, postId, authorId
-Like      — id, postId, userId  [unique: postId+userId]
+User      — id (ObjectId), name, email, bio, image, streak, createdAt
+Note      — id (ObjectId), title, content, summary, collection, userId
+Comment   — id (ObjectId), content, noteId, authorId, parentId
+Reaction  — id (ObjectId), type, noteId, userId
+Tag       — id (ObjectId), name, userId, noteIds
+Folder    — id (ObjectId), name, color, userId
 ```
-
-**Relationships:**
-- `User` → has many `Post`, `Comment`, `Like`
-- `Post` → belongs to `User`, has many `Comment`, `Like`
-- `Comment` / `Like` → cascade delete when `Post` is deleted
 
 ---
 
 ## ⚙️ Environment Variables (`.env`)
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/inkverse"
+DATABASE_URL="mongodb+srv://<username>:<password>@cluster0.mongodb.net/retronotes?retryWrites=true&w=majority"
+JWT_SECRET="secret_retronotes_2026"
 ```
 
 ---
 
 ## 🚀 Local Development
+
 
 ### 1. Install dependencies
 ```bash

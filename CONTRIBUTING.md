@@ -1,4 +1,4 @@
-# InkVerse — Contributing Guide
+# Retro Notes — Contributing Guide
 
 ## Code Style
 
@@ -12,7 +12,7 @@
 Use the conventional commits format:
 
 ```
-feat(posts): add like toggle endpoint
+feat(notes): add reaction toggle endpoint
 fix(auth): handle expired JWT gracefully
 docs(readme): update API endpoint table
 chore(deps): upgrade prisma to v7.9
@@ -30,7 +30,7 @@ fix/<name>    — bug fixes
 ## Adding a New Backend Module
 
 ```bash
-# From inkverse-backend/
+# From server/ (retronotes-backend)
 npx nest g module <name>
 npx nest g controller <name>
 npx nest g service <name>
@@ -42,11 +42,12 @@ Then register the module in `src/app.module.ts`.
 
 Create the file at `src/app/<route>/page.tsx`.  
 - Prefer **Server Components** (no `"use client"`) for data-fetching pages.
-- Use `"use client"` only for pages/components with interactive state (forms, like buttons).
+- Use `"use client"` only for pages/components with interactive state (forms, note actions).
 
 ## Pull Request Checklist
 
 - [ ] Code lints without errors (`npm run lint`)
 - [ ] Tests pass (`npm run test`)
-- [ ] New API endpoints are documented in `inkverse-backend/README.md`
-- [ ] New pages/components are noted in `inkverse-frontend/README.md`
+- [ ] New API endpoints are documented in `server/README.md`
+- [ ] New pages/components are noted in `client/README.md`
+
