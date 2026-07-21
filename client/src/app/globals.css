@@ -29,6 +29,20 @@
   --crt-scanline-opacity: 0.18;
 }
 
+/* Code Matrix Rain Theme */
+[data-theme='matrix'] {
+  --bg-color: #020d04;
+  --fg-color: #00ff66;
+  --fg-glow: 0 0 10px rgba(0, 255, 102, 0.85);
+  --border-color: #005522;
+  --border-glow: 0 0 8px rgba(0, 255, 102, 0.6);
+  --accent-color: #00ffa3;
+  --panel-bg: #051909;
+  --crt-scanline-opacity: 0.2;
+  --font-family-title: 'VT323', monospace;
+  --font-family-body: 'Courier Prime', monospace;
+}
+
 /* Windows 95 Theme */
 [data-theme='win95'] {
   --bg-color: #008080;
