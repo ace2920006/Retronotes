@@ -2136,17 +2136,18 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                     {/* Left Pane: Raw Edit */}
                     <div className="flex-1 flex flex-col p-4 border-r border-[var(--border-color)]/30 overflow-hidden">
-                      {/* Markdown Toolbar */}
-                      <div className="flex flex-wrap gap-1 mb-2 border-b border-[var(--border-color)]/20 pb-1 select-none">
-                        <button type="button" onClick={() => insertMarkdown("bold")} className="retro-button px-2 py-0.5 text-[9px] font-bold font-mono" title="Insert Bold text">B</button>
-                        <button type="button" onClick={() => insertMarkdown("italic")} className="retro-button px-2 py-0.5 text-[9px] italic font-mono" title="Insert Italic text">I</button>
-                        <button type="button" onClick={() => insertMarkdown("h1")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Heading 1">H1</button>
-                        <button type="button" onClick={() => insertMarkdown("h2")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Heading 2">H2</button>
-                        <button type="button" onClick={() => insertMarkdown("code")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Code block">&lt;&gt;</button>
-                        <button type="button" onClick={() => insertMarkdown("link")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Link syntax">Link</button>
-                        <button type="button" onClick={() => insertMarkdown("image")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert Image syntax">Image</button>
-                        <button type="button" onClick={() => insertMarkdown("list")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert List bullet">List</button>
-                        <button type="button" onClick={() => insertMarkdown("quote")} className="retro-button px-2 py-0.5 text-[9px] font-mono" title="Insert block Quote">Quote</button>
+                      {/* Markdown Formatting Helper Toolbar */}
+                      <div className="flex flex-wrap items-center gap-1 mb-2.5 border-b border-[var(--border-color)]/30 pb-1.5 select-none bg-[var(--panel-bg)]/40 p-1">
+                        <span className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mr-1 font-mono">Format:</span>
+                        <button type="button" onClick={() => insertMarkdown("bold")} className="retro-button px-2 py-0.5 text-[10px] font-bold font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Bold (**text**)"><strong>B</strong> Bold</button>
+                        <button type="button" onClick={() => insertMarkdown("italic")} className="retro-button px-2 py-0.5 text-[10px] italic font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Italic (*text*)"><em>I</em> Italic</button>
+                        <button type="button" onClick={() => insertMarkdown("h1")} className="retro-button px-2 py-0.5 text-[10px] font-bold font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Heading 1 (# Heading)">H1</button>
+                        <button type="button" onClick={() => insertMarkdown("h2")} className="retro-button px-2 py-0.5 text-[10px] font-bold font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Heading 2 (## Heading)">H2</button>
+                        <button type="button" onClick={() => insertMarkdown("code")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Inline Code (`code`)">&lt;/&gt; Code</button>
+                        <button type="button" onClick={() => insertMarkdown("link")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Hyperlink ([Text](url))">🔗 Link</button>
+                        <button type="button" onClick={() => insertMarkdown("image")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Image (![Alt](url))">🖼️ Image</button>
+                        <button type="button" onClick={() => insertMarkdown("list")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Bullet List (- item)">• List</button>
+                        <button type="button" onClick={() => insertMarkdown("quote")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Block Quote (> text)">“ Quote</button>
                       </div>
 
                       <input
