@@ -968,6 +968,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         e.preventDefault();
         setShowThemeGallery((prev) => !prev);
       }
+      // ? (Keyboard shortcuts legend)
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        const activeTag = document.activeElement?.tagName.toLowerCase();
+        if (activeTag !== "input" && activeTag !== "textarea") {
+          e.preventDefault();
+          setShowShortcutHelp((prev) => !prev);
+        }
+      }
       // Esc (Close help/drawers)
       if (e.key === "Escape") {
         setShowShortcutHelp(false);
