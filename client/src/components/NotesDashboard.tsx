@@ -1861,6 +1861,37 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 </button>
               </div>
 
+              {/* Quick Filter Preset Ribbon */}
+              <div className="px-2 py-1.5 border-b border-[var(--border-color)]/40 bg-[var(--panel-bg)]/60 flex items-center gap-1 overflow-x-auto select-none text-[10px]">
+                {[
+                  { key: 'all', label: 'ALL', icon: '📖' },
+                  { key: 'pinned', label: 'PINNED', icon: '📌' },
+                  { key: 'favorite', label: 'FAVS', icon: '⭐' },
+                  { key: 'archived', label: 'ARCHIVE', icon: '📦' },
+                  { key: 'trashed', label: 'TRASH', icon: '🗑️' }
+                ].map((f) => {
+                  const isActive = activeStatus === f.key && !selectedFolderId && !selectedTag;
+                  return (
+                    <button
+                      key={f.key}
+                      onClick={() => {
+                        setActiveStatus(f.key);
+                        setSelectedFolderId(null);
+                        setSelectedTag(null);
+                      }}
+                      className={`px-2 py-0.5 font-mono whitespace-nowrap transition-all uppercase flex items-center gap-1 border ${
+                        isActive
+                          ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] font-bold shadow-[0_0_6px_var(--accent-color)]'
+                          : 'bg-[var(--bg-color)] text-gray-400 border-[var(--border-color)]/40 hover:text-[var(--fg-color)] hover:border-[var(--border-color)]'
+                      }`}
+                    >
+                      <span>{f.icon}</span>
+                      <span>{f.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Note tiles list */}
               <div className="flex-1 overflow-y-auto">
                 {getGroupedNotes(notes).map((group) => (
