@@ -1579,12 +1579,24 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             {/* Toggle CRT overlay */}
             <button
               onClick={toggleCrt}
-              className={`retro-button px-2 py-1 text-[10px] font-mono ${
-                crtEnabled ? 'bg-[var(--border-color)] text-[var(--bg-color)]' : ''
+              className={`retro-button px-2.5 py-1.5 text-xs font-mono flex items-center gap-1.5 transition-all ${
+                crtEnabled
+                  ? 'bg-[var(--border-color)] text-[var(--fg-color)] border-[var(--accent-color)] shadow-[0_0_8px_var(--border-color)]'
+                  : 'opacity-70 hover:opacity-100'
               }`}
-              title="Toggle scanline monitor curvature effect"
+              title="Toggle retro CRT scanlines and monitor phosphor glow (CRT Overlay)"
             >
-              CRT SCREEN: {crtEnabled ? 'ON' : 'OFF'}
+              <span className="text-sm">📺</span>
+              <span className="font-bold">CRT SCANLINES:</span>
+              <span
+                className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-none border ${
+                  crtEnabled
+                    ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] shadow-[0_0_6px_var(--accent-color)]'
+                    : 'bg-red-950/80 text-red-400 border-red-800'
+                }`}
+              >
+                {crtEnabled ? 'ACTIVE' : 'MUTED'}
+              </span>
             </button>
 
             {/* Toggle Audio */}
