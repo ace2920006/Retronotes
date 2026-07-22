@@ -2042,7 +2042,26 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                     </div>
 
                     {/* Toolbar Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Live Word Count & Reading Time Badge */}
+                      {(() => {
+                        const wordCount = editContent.trim() ? editContent.trim().split(/\s+/).filter(Boolean).length : 0;
+                        const readTimeMin = Math.max(1, Math.ceil(wordCount / 200));
+                        const charCount = editContent.length;
+                        return (
+                          <div
+                            className="flex items-center gap-1.5 text-[9px] font-mono px-2 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)]/60 text-gray-400 select-none"
+                            title="Live stats: Word count, estimated reading time & total characters"
+                          >
+                            <span>📊 <strong className="text-[var(--accent-color)]">{wordCount}</strong> words</span>
+                            <span className="text-[8px] opacity-40">|</span>
+                            <span>⏱️ <strong className="text-[var(--fg-color)]">{readTimeMin}</strong> {readTimeMin === 1 ? 'min' : 'mins'} read</span>
+                            <span className="text-[8px] opacity-40">|</span>
+                            <span>🔤 <strong className="text-gray-300">{charCount}</strong> chars</span>
+                          </div>
+                        );
+                      })()}
+
                       {/* Study mode flashcard generator */}
                       {editContent && (
                         <button
