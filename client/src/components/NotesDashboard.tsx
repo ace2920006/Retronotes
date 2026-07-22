@@ -2560,6 +2560,73 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         currentThemeId={theme}
         onSelectTheme={toggleTheme}
       />
+
+      {/* MODAL: Keyboard Shortcuts Legend */}
+      {showShortcutHelp && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[999] select-none">
+          <div className="retro-border bg-[var(--panel-bg)] max-w-md w-full overflow-hidden shadow-2xl flex flex-col font-mono text-xs">
+            {/* Header */}
+            <div className="win95-window-title flex justify-between items-center text-[11px] uppercase font-bold py-1.5 px-3">
+              <span>⌨️ KEYBOARD SHORTCUTS MATRIX</span>
+              <button
+                onClick={() => setShowShortcutHelp(false)}
+                className="text-[9px] border px-1 bg-[#c0c0c0] text-black hover:bg-red-500 hover:text-white"
+              >
+                [X]
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+              <p className="text-gray-400 text-[10px] uppercase font-bold border-b border-[var(--border-color)]/30 pb-1">
+                System Commands & Shortcuts
+              </p>
+              <div className="space-y-2 text-[11px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Command Palette</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + K</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Create New Note</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + N</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Save Active Note</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + S</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Duplicate Note</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + D</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Toggle Theme Studio</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + T</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Pin / Unpin Note</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + P</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Move to Trash</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Delete</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Shortcuts Help Legend</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">?</kbd>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-[var(--bg-color)] border-t border-[var(--border-color)]/30 text-center">
+              <button
+                onClick={() => setShowShortcutHelp(false)}
+                className="retro-button px-4 py-1 text-xs uppercase font-bold text-glow"
+              >
+                Close (ESC)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
