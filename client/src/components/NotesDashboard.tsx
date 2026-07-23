@@ -885,45 +885,6 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const duplicateNote = async () => {
-    if (!selectedNote || selectedNote.id === "new-note-temp") return;
-    playFloppySave();
-    try {
-      if (isOffline) {
-        const cloned: Note = {
-          ...selectedNote,
-          id: "offline-" + Math.random().toString(36).substring(2, 9),
-          title: `${editTitle} (Copy)`,
-          content: editContent,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        const nextNotes = [cloned, ...notes];
-        setNotes(nextNotes);
-        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-        selectNote(cloned);
-      } else {
-        const newNote = await fetchAPI("/notes", {
-          token,
-          method: "POST",
-          body: JSON.stringify({
-            title: `${editTitle} (Copy)`,
-            content: editContent,
-            folderId: editFolderId === "" ? null : editFolderId,
-            tagNames: editTagsString.split(",").map(t => t.trim()).filter(Boolean),
-            color: editColor === "" ? null : editColor,
-          }),
-        });
-        if (newNote) {
-          selectNote(newNote);
-          loadData();
-        }
-      }
-    } catch (e) {
-      console.error("Failed to duplicate note:", e);
-    }
-  };
-
   const exportNote = (type: "txt" | "md" | "pdf" | "json") => {
     if (!selectedNote) return;
 
