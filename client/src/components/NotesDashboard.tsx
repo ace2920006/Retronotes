@@ -2083,9 +2083,19 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         </button>
                       )}
 
-                      {/* One-click Export Buttons */}
+                      {/* One-click Export & Quick Copy Buttons */}
                       <div className="flex items-center gap-1">
-                        <span className="text-[9px] text-gray-500 uppercase select-none mr-0.5">Export:</span>
+                        <button
+                          type="button"
+                          onClick={copyNoteToClipboard}
+                          className={`retro-button px-1.5 py-0.5 text-[9px] font-mono transition-colors ${
+                            isCopied ? 'bg-[var(--accent-color)] text-black font-bold' : ''
+                          }`}
+                          title="Copy note content to clipboard"
+                        >
+                          {isCopied ? '✓ COPIED' : '📋 COPY'}
+                        </button>
+                        <span className="text-[9px] text-gray-500 uppercase select-none mx-0.5">Export:</span>
                         <button type="button" onClick={() => exportNote("txt")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as TXT file">TXT</button>
                         <button type="button" onClick={() => exportNote("md")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as MD file">MD</button>
                         <button type="button" onClick={() => exportNote("pdf")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Print note to PDF">PDF</button>
