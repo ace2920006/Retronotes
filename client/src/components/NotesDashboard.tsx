@@ -147,6 +147,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   // --- NEW STATES FOR ENHANCEMENTS ---
   const [editColor, setEditColor] = useState<string>("");
+  const [isCopied, setIsCopied] = useState<boolean>(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'offline' | 'idle'>('idle');
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -874,7 +875,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
-  // --- EXPORTS ---
+  // --- EXPORTS & UTILITIES ---
+  const copyNoteToClipboard = () => {
+    if (!selectedNote) return;
+    playToggleBeep();
+    const textToCopy = editTitle ? `${editTitle}\n\n${editContent}` : editContent;
+    navigator.clipboard.writeText(textToCopy);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
   const exportNote = (type: "txt" | "md" | "pdf") => {
     if (!selectedNote) return;
 
