@@ -1254,6 +1254,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         replacement = `\n> ${selectedText || "block quote"}\n`;
         cursorOffset = replacement.length;
         break;
+      case "strikethrough":
+        replacement = `~~${selectedText || "strikethrough text"}~~`;
+        cursorOffset = selectedText ? replacement.length : 2;
+        break;
+      case "task":
+        replacement = `\n- [ ] ${selectedText || "task item"}\n`;
+        cursorOffset = replacement.length;
+        break;
       default:
         return;
     }
@@ -2180,13 +2188,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <span className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mr-1 font-mono">Format:</span>
                         <button type="button" onClick={() => insertMarkdown("bold")} className="retro-button px-2 py-0.5 text-[10px] font-bold font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Bold (**text**)"><strong>B</strong> Bold</button>
                         <button type="button" onClick={() => insertMarkdown("italic")} className="retro-button px-2 py-0.5 text-[10px] italic font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Italic (*text*)"><em>I</em> Italic</button>
+                        <button type="button" onClick={() => insertMarkdown("strikethrough")} className="retro-button px-2 py-0.5 text-[10px] line-through font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Strikethrough (~~text~~)"><s>S</s> Strike</button>
                         <button type="button" onClick={() => insertMarkdown("h1")} className="retro-button px-2 py-0.5 text-[10px] font-bold font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Heading 1 (# Heading)">H1</button>
                         <button type="button" onClick={() => insertMarkdown("h2")} className="retro-button px-2 py-0.5 text-[10px] font-bold font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Heading 2 (## Heading)">H2</button>
                         <button type="button" onClick={() => insertMarkdown("code")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Inline Code (`code`)">&lt;/&gt; Code</button>
                         <button type="button" onClick={() => insertMarkdown("link")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Hyperlink ([Text](url))">🔗 Link</button>
                         <button type="button" onClick={() => insertMarkdown("image")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Image (![Alt](url))">🖼️ Image</button>
                         <button type="button" onClick={() => insertMarkdown("list")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Bullet List (- item)">• List</button>
+                        <button type="button" onClick={() => insertMarkdown("task")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Task Checklist (- [ ] task)">☑️ Task</button>
                         <button type="button" onClick={() => insertMarkdown("quote")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Block Quote (> text)">“ Quote</button>
+                        <button type="button" onClick={() => { if (editContent && window.confirm("CLEAR NOTE CONTENT?")) setEditContent(""); }} className="retro-button px-2 py-0.5 text-[10px] text-red-400 border-red-900 font-mono hover:bg-red-900 hover:text-white transition-colors ml-auto" title="Clear note content">🧹 Clear</button>
                       </div>
 
                       <input
