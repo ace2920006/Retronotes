@@ -885,7 +885,46 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const exportNote = (type: "txt" | "md" | "pdf") => {
+  const duplicateNote = async () => {
+    if (!selectedNote || selectedNote.id === "new-note-temp") return;
+    playFloppySave();
+    try {
+      if (isOffline) {
+        const cloned: Note = {
+          ...selectedNote,
+          id: "offline-" + Math.random().toString(36).substring(2, 9),
+          title: `${editTitle} (Copy)`,
+          content: editContent,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const nextNotes = [cloned, ...notes];
+        setNotes(nextNotes);
+        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
+        selectNote(cloned);
+      } else {
+        const newNote = await fetchAPI("/notes", {
+          token,
+          method: "POST",
+          body: JSON.stringify({
+            title: `${editTitle} (Copy)`,
+            content: editContent,
+            folderId: editFolderId === "" ? null : editFolderId,
+            tagNames: editTagsString.split(",").map(t => t.trim()).filter(Boolean),
+            color: editColor === "" ? null : editColor,
+          }),
+        });
+        if (newNote) {
+          selectNote(newNote);
+          loadData();
+        }
+      }
+    } catch (e) {
+      console.error("Failed to duplicate note:", e);
+    }
+  };
+
+  const exportNote = (type: "txt" | "md" | "pdf" | "json") => {
     if (!selectedNote) return;
 
     const titleClean = selectedNote.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
@@ -896,18 +935,28 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
 
     let fileContent = "";
-    let extension = "txt";
+    let extension: string = type;
+    let mimeType = 'text/plain';
 
     if (type === "txt") {
       fileContent = `=== ${selectedNote.title.toUpperCase()} ===\nUpdated: ${new Date(selectedNote.updatedAt).toLocaleString()}\n\n${selectedNote.content}`;
-      extension = "txt";
     } else if (type === "md") {
       fileContent = `# ${selectedNote.title}\n\n*Updated: ${new Date(selectedNote.updatedAt).toLocaleString()}*\n\n${selectedNote.content}`;
-      extension = "md";
+    } else if (type === "json") {
+      mimeType = 'application/json';
+      fileContent = JSON.stringify({
+        title: editTitle || selectedNote.title,
+        content: editContent,
+        tags: editTagsString.split(",").map(t => t.trim()).filter(Boolean),
+        folderId: editFolderId || null,
+        color: editColor || null,
+        updatedAt: selectedNote.updatedAt,
+        createdAt: selectedNote.createdAt,
+      }, null, 2);
     }
 
     const element = document.createElement("a");
-    const file = new Blob([fileContent], { type: 'text/plain' });
+    const file = new Blob([fileContent], { type: mimeType });
     element.href = URL.createObjectURL(file);
     element.download = `${titleClean}.${extension}`;
     document.body.appendChild(element);
@@ -2095,9 +2144,18 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         >
                           {isCopied ? '✓ COPIED' : '📋 COPY'}
                         </button>
+                        <button
+                          type="button"
+                          onClick={duplicateNote}
+                          className="retro-button px-1.5 py-0.5 text-[9px] font-mono"
+                          title="Duplicate this note"
+                        >
+                          👯 CLONE
+                        </button>
                         <span className="text-[9px] text-gray-500 uppercase select-none mx-0.5">Export:</span>
                         <button type="button" onClick={() => exportNote("txt")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as TXT file">TXT</button>
                         <button type="button" onClick={() => exportNote("md")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as MD file">MD</button>
+                        <button type="button" onClick={() => exportNote("json")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as JSON file">JSON</button>
                         <button type="button" onClick={() => exportNote("pdf")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Print note to PDF">PDF</button>
                       </div>
 
