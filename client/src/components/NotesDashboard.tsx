@@ -1476,6 +1476,9 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
     html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
 
+    // Horizontal Rule
+    html = html.replace(/^---$/gim, '<hr class="my-3 border-t border-[var(--border-color)]/60" />');
+
     // Code blocks
     html = html.replace(/```(?:js|javascript|html|css)?\n([\s\S]*?)\n```/gim, '<pre><code>$1</code></pre>');
     
@@ -2216,6 +2219,9 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <button type="button" onClick={() => insertMarkdown("list")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Bullet List (- item)">• List</button>
                         <button type="button" onClick={() => insertMarkdown("task")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Task Checklist (- [ ] task)">☑️ Task</button>
                         <button type="button" onClick={() => insertMarkdown("quote")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Block Quote (> text)">“ Quote</button>
+                        <button type="button" onClick={() => insertMarkdown("timestamp")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Insert Retro Timestamp ([YYYY-MM-DD HH:MM])">🕒 Stamp</button>
+                        <button type="button" onClick={() => insertMarkdown("hr")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Horizontal Line (---)">➖ Line</button>
+                        <button type="button" onClick={() => insertMarkdown("table")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Insert Markdown Table">📊 Table</button>
                         <button type="button" onClick={() => { if (editContent && window.confirm("CLEAR NOTE CONTENT?")) setEditContent(""); }} className="retro-button px-2 py-0.5 text-[10px] text-red-400 border-red-900 font-mono hover:bg-red-900 hover:text-white transition-colors ml-auto" title="Clear note content">🧹 Clear</button>
                       </div>
 
