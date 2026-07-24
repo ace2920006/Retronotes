@@ -1285,6 +1285,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         replacement = selectedText ? selectedText.toUpperCase() : "UPPERCASE";
         cursorOffset = replacement.length;
         break;
+      case "lowercase":
+        replacement = selectedText ? selectedText.toLowerCase() : "lowercase";
+        cursorOffset = replacement.length;
+        break;
       default:
         return;
     }
@@ -2227,6 +2231,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <button type="button" onClick={() => insertMarkdown("hr")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Horizontal Line (---)">➖ Line</button>
                         <button type="button" onClick={() => insertMarkdown("table")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Insert Markdown Table">📊 Table</button>
                         <button type="button" onClick={() => insertMarkdown("uppercase")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Convert Selected Text to UPPERCASE">🔠 Upper</button>
+                        <button type="button" onClick={() => insertMarkdown("lowercase")} className="retro-button px-2 py-0.5 text-[10px] font-mono hover:bg-[var(--accent-color)] hover:text-black transition-colors" title="Convert Selected Text to lowercase">🔡 Lower</button>
                         <button type="button" onClick={() => { if (editContent && window.confirm("CLEAR NOTE CONTENT?")) setEditContent(""); }} className="retro-button px-2 py-0.5 text-[10px] text-red-400 border-red-900 font-mono hover:bg-red-900 hover:text-white transition-colors ml-auto" title="Clear note content">🧹 Clear</button>
                       </div>
 
