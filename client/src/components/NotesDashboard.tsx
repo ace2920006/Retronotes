@@ -1262,6 +1262,25 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         replacement = `\n- [ ] ${selectedText || "task item"}\n`;
         cursorOffset = replacement.length;
         break;
+      case "timestamp": {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const hh = String(now.getHours()).padStart(2, "0");
+        const min = String(now.getMinutes()).padStart(2, "0");
+        replacement = `[${yyyy}-${mm}-${dd} ${hh}:${min}] `;
+        cursorOffset = replacement.length;
+        break;
+      }
+      case "hr":
+        replacement = `\n---\n`;
+        cursorOffset = replacement.length;
+        break;
+      case "table":
+        replacement = `\n| Item | Description |\n| --- | --- |\n| Sample | Details |\n`;
+        cursorOffset = replacement.length;
+        break;
       default:
         return;
     }
