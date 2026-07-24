@@ -150,6 +150,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'offline' | 'idle'>('idle');
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isSelectingNoteRef = useRef<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Social & Platform Enhancements States
@@ -423,17 +424,20 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // --- ACTIONS ---
   // Select active note for editing
   const selectNote = async (note: Note) => {
+    isSelectingNoteRef.current = true;
+    setAutoSaveStatus('idle');
     setSelectedNote(note);
     setEditTitle(note.title);
     setEditContent(note.content);
     setEditFolderId(note.folderId || "");
-    setEditTagsString(note.tags.map(t => t.name).join(", "));
+    setEditTagsString(note.tags ? note.tags.map(t => t.name).join(", ") : "");
     setEditColor(note.color || "");
     setEditIsPublished(note.isPublished !== false);
     setEditCollection(note.collection || "");
     setEditMood(note.mood || "");
     setEditSummary(note.summary || "");
     setFlashcards([]);
+    setTimeout(() => { isSelectingNoteRef.current = false; }, 300);
 
     try {
       const fullNote = await fetchAPI(`/notes/${note.id}`, { token });
@@ -638,6 +642,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   };
 
   const createNewNote = () => {
+    isSelectingNoteRef.current = true;
+    setAutoSaveStatus('idle');
     const tempNew: Note = {
       id: "new-note-temp",
       title: "Untitled Note",
@@ -663,15 +669,12 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setEditMood("");
     setEditSummary("");
     setFlashcards([]);
+    setTimeout(() => { isSelectingNoteRef.current = false; }, 300);
   };
 
-  // Save changes to Server / Offline cache
-  const saveNote = async () => {
+  // Silent fast save for optimistic background updates and debounced auto-save
+  const saveNoteSilent = async () => {
     if (!selectedNote) return;
-
-    playFloppySave();
-    setIsSaving(true);
-    setSaveMessage("SAVING TO SECTOR 4...");
 
     const tagNames = editTagsString
       .split(",")
@@ -679,7 +682,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       .filter(t => t.length > 0);
 
     const payload = {
-      title: editTitle,
+      title: editTitle || "Untitled Note",
       content: editContent,
       folderId: editFolderId === "" ? null : editFolderId,
       tagNames,
@@ -687,169 +690,201 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     };
 
     try {
-      if (isOffline || selectedNote.id === "new-note-temp") {
-        if (selectedNote.id === "new-note-temp") {
-          // Offline/Online New Creation
-          if (isOffline) {
-            // Simulated offline note
-            const offlineNote: Note = {
-              id: "offline-" + Math.random().toString(36).substr(2, 9),
-              title: editTitle,
-              content: editContent,
-              isPinned: false,
-              isArchived: false,
-              isTrashed: false,
-              isFavorite: false,
-              color: editColor || null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              folderId: editFolderId === "" ? null : editFolderId,
-              tags: tagNames.map((name, i) => ({ id: `offline-tag-${i}`, name })),
-            };
-            const nextNotes = [offlineNote, ...notes];
-            setNotes(nextNotes);
-            localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-            setSelectedNote(offlineNote);
-          } else {
-            // Live backend save
-            const saved = await fetchAPI("/notes", {
-              token,
-              method: "POST",
-              body: JSON.stringify(payload),
-            });
-            setSelectedNote(saved);
-            loadData();
-          }
+      if (selectedNote.id === "new-note-temp") {
+        if (isOffline) {
+          const offlineNote: Note = {
+            id: "offline-" + Math.random().toString(36).substr(2, 9),
+            title: editTitle || "Untitled Note",
+            content: editContent,
+            isPinned: false,
+            isArchived: false,
+            isTrashed: false,
+            isFavorite: false,
+            color: editColor || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            folderId: editFolderId === "" ? null : editFolderId,
+            tags: tagNames.map((name, i) => ({ id: `offline-tag-${i}`, name })),
+          };
+          isSelectingNoteRef.current = true;
+          setSelectedNote(offlineNote);
+          setNotes(prev => [offlineNote, ...prev.filter(n => n.id !== "new-note-temp")]);
+          localStorage.setItem("retronotes-cache-notes", JSON.stringify([offlineNote, ...notes.filter(n => n.id !== "new-note-temp")]));
+          setTimeout(() => { isSelectingNoteRef.current = false; }, 300);
         } else {
-          // Offline update or online update
-          if (isOffline) {
-            const nextNotes = notes.map(n => {
-              if (n.id === selectedNote.id) {
-                return {
-                  ...n,
-                  title: editTitle,
-                  content: editContent,
-                  folderId: editFolderId === "" ? null : editFolderId,
-                  tags: tagNames.map((name, i) => ({ id: `offline-tag-${i}`, name })),
-                  color: editColor || null,
-                  updatedAt: new Date().toISOString(),
-                };
-              }
-              return n;
-            });
-            setNotes(nextNotes);
-            localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-          } else {
-            const updated = await fetchAPI(`/notes/${selectedNote.id}`, {
-              token,
-              method: "PATCH",
-              body: JSON.stringify(payload),
-            });
-            setSelectedNote(updated);
-            loadData();
+          const saved = await fetchAPI("/notes", {
+            token,
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          if (saved) {
+            isSelectingNoteRef.current = true;
+            setSelectedNote(saved);
+            setNotes(prev => [saved, ...prev.filter(n => n.id !== "new-note-temp")]);
+            localStorage.setItem("retronotes-cache-notes", JSON.stringify([saved, ...notes.filter(n => n.id !== "new-note-temp")]));
+            setTimeout(() => { isSelectingNoteRef.current = false; }, 300);
           }
         }
       } else {
-        // Online Update
-        const updated = await fetchAPI(`/notes/${selectedNote.id}`, {
-          token,
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        });
-        setSelectedNote(updated);
-        loadData();
-      }
+        // Optimistic local update
+        const updatedPartial: Partial<Note> = {
+          title: editTitle,
+          content: editContent,
+          folderId: editFolderId === "" ? null : editFolderId,
+          tags: tagNames.map((name, i) => ({ id: `tag-${i}`, name })),
+          color: editColor || null,
+          updatedAt: new Date().toISOString(),
+        };
 
-      setSaveMessage("SUCCESSFULLY WRITTEN.");
-      setTimeout(() => setIsSaving(false), 800);
+        setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, ...updatedPartial } : n));
+        setSelectedNote(prev => prev ? { ...prev, ...updatedPartial } : null);
+
+        if (isOffline) {
+          localStorage.setItem("retronotes-cache-notes", JSON.stringify(
+            notes.map(n => n.id === selectedNote.id ? { ...n, ...updatedPartial } : n)
+          ));
+        } else {
+          const updated = await fetchAPI(`/notes/${selectedNote.id}`, {
+            token,
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+          if (updated) {
+            setNotes(prev => prev.map(n => n.id === updated.id ? { ...n, ...updated } : n));
+            setSelectedNote(prev => prev && prev.id === updated.id ? { ...prev, ...updated } : prev);
+            localStorage.setItem("retronotes-cache-notes", JSON.stringify(
+              notes.map(n => n.id === updated.id ? { ...n, ...updated } : n)
+            ));
+          }
+        }
+      }
+      setAutoSaveStatus('saved');
     } catch (e) {
-      console.error(e);
-      setSaveMessage("SAVE ERROR.");
-      setTimeout(() => setIsSaving(false), 1500);
+      console.error("Fast save error:", e);
+      setAutoSaveStatus('idle');
     }
   };
 
-  // Toggle properties (Pin, Archive, Trash, Favorite)
+  // Debounced Auto-Save as user types
+  useEffect(() => {
+    if (isBooting || isSelectingNoteRef.current || !selectedNote) return;
+
+    const currentTags = selectedNote.tags ? selectedNote.tags.map(t => t.name).join(", ") : "";
+    const hasChanges =
+      editTitle !== selectedNote.title ||
+      editContent !== selectedNote.content ||
+      (editFolderId || "") !== (selectedNote.folderId || "") ||
+      editTagsString !== currentTags ||
+      (editColor || "") !== (selectedNote.color || "");
+
+    if (!hasChanges) return;
+
+    setAutoSaveStatus('saving');
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveNoteSilent();
+    }, 600);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [editTitle, editContent, editFolderId, editTagsString, editColor, selectedNote, isBooting]);
+
+  // Save changes explicitly (Button / Ctrl+S)
+  const saveNote = async () => {
+    if (!selectedNote) return;
+
+    playFloppySave();
+    setIsSaving(true);
+    setSaveMessage("SAVING TO SECTOR 4...");
+    setAutoSaveStatus('saving');
+
+    await saveNoteSilent();
+
+    setSaveMessage("SUCCESSFULLY WRITTEN.");
+    setTimeout(() => setIsSaving(false), 800);
+  };
+
+  // Toggle properties (Pin, Archive, Trash, Favorite) with 0ms optimistic response
   const toggleProperty = async (prop: 'isPinned' | 'isArchived' | 'isTrashed' | 'isFavorite') => {
     if (!selectedNote || selectedNote.id === "new-note-temp") return;
 
+    playToggleBeep();
     const updatedVal = !selectedNote[prop];
-    const updatePayload = { [prop]: updatedVal };
+    const updatePayload: any = { [prop]: updatedVal };
 
     // If archiving or trashing, unpin automatically
     if ((prop === 'isArchived' || prop === 'isTrashed') && updatedVal) {
       updatePayload.isPinned = false;
     }
 
+    // 0ms Optimistic UI update
+    setSelectedNote(prev => prev ? { ...prev, ...updatePayload } : null);
+    setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, ...updatePayload } : n));
+
+    const cached = notes.map(n => n.id === selectedNote.id ? { ...n, ...updatePayload } : n);
+    localStorage.setItem("retronotes-cache-notes", JSON.stringify(cached));
+
     try {
-      if (isOffline) {
-        const nextNotes = notes.map(n => {
-          if (n.id === selectedNote.id) {
-            return { ...n, ...updatePayload };
-          }
-          return n;
-        });
-        setNotes(nextNotes);
-        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-        setSelectedNote({ ...selectedNote, ...updatePayload });
-      } else {
-        const updated = await fetchAPI(`/notes/${selectedNote.id}`, {
+      if (!isOffline) {
+        await fetchAPI(`/notes/${selectedNote.id}`, {
           token,
           method: "PATCH",
           body: JSON.stringify(updatePayload),
         });
-        setSelectedNote(updated);
-        loadData();
       }
     } catch (e) {
       console.error("Toggle property failed:", e);
+      // Revert if error
+      setSelectedNote(selectedNote);
+      setNotes(notes);
     }
   };
 
-  // Hard Delete
+  // Fast Hard Delete
   const deletePermanently = async (id: string) => {
-    if (isOffline) {
-      const nextNotes = notes.filter(n => n.id !== id);
-      setNotes(nextNotes);
-      localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-      setSelectedNote(null);
-      return;
-    }
+    playToggleBeep();
+    setSelectedNote(null);
+    setNotes(prev => prev.filter(n => n.id !== id));
+    localStorage.setItem("retronotes-cache-notes", JSON.stringify(notes.filter(n => n.id !== id)));
 
-    try {
-      await fetchAPI(`/notes/${id}`, {
-        token,
-        method: "DELETE",
-      });
-      setSelectedNote(null);
-      loadData();
-    } catch (e) {
-      console.error("Failed to delete note permanently:", e);
+    if (!isOffline) {
+      try {
+        await fetchAPI(`/notes/${id}`, {
+          token,
+          method: "DELETE",
+        });
+      } catch (e) {
+        console.error("Failed to delete note permanently:", e);
+      }
     }
   };
 
-  // Empty Trash
+  // Fast Empty Trash
   const emptyTrash = async () => {
     if (window.confirm("ARE YOU SURE YOU WANT TO PERMANENTLY EMPTY THE TRASH CAN?")) {
-      if (isOffline) {
-        const nextNotes = notes.filter(n => !n.isTrashed);
-        setNotes(nextNotes);
-        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-        setSelectedNote(null);
-        return;
-      }
+      playToggleBeep();
+      setNotes(prev => prev.filter(n => !n.isTrashed));
+      if (selectedNote?.isTrashed) setSelectedNote(null);
+      localStorage.setItem("retronotes-cache-notes", JSON.stringify(notes.filter(n => !n.isTrashed)));
 
-      try {
-        await fetchAPI("/notes/empty-trash", { token, method: "POST" });
-        setSelectedNote(null);
-        loadData();
-      } catch (e) {
-        console.error("Failed to empty trash:", e);
+      if (!isOffline) {
+        try {
+          await fetchAPI("/notes/empty-trash", { token, method: "POST" });
+        } catch (e) {
+          console.error("Failed to empty trash:", e);
+        }
       }
     }
   };
 
-  // Create folder
+  // Fast Create folder
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
@@ -861,12 +896,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         setFolders(nextFolders);
         localStorage.setItem("retronotes-cache-folders", JSON.stringify(nextFolders));
       } else {
-        await fetchAPI("/folders", {
+        const createdFolder = await fetchAPI("/folders", {
           token,
           method: "POST",
           body: JSON.stringify({ name: newFolderName, color: newFolderColor }),
         });
-        loadData();
+        if (createdFolder) {
+          setFolders(prev => [...prev, createdFolder]);
+        }
       }
       setNewFolderName("");
       setShowFolderModal(false);
@@ -1159,8 +1196,11 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             color: dupColor,
           }),
         });
-        setSelectedNote(saved);
-        loadData();
+        if (saved) {
+          setNotes(prev => [saved, ...prev]);
+          localStorage.setItem("retronotes-cache-notes", JSON.stringify([saved, ...notes]));
+          selectNote(saved);
+        }
       }
     } catch (e) {
       console.error("Duplicate failed:", e);
@@ -2235,16 +2275,38 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <button type="button" onClick={() => { if (editContent && window.confirm("CLEAR NOTE CONTENT?")) setEditContent(""); }} className="retro-button px-2 py-0.5 text-[10px] text-red-400 border-red-900 font-mono hover:bg-red-900 hover:text-white transition-colors ml-auto" title="Clear note content">🧹 Clear</button>
                       </div>
 
-                      <input
-                        type="text"
-                        placeholder="Note Title"
-                        value={editTitle}
-                        onChange={(e) => {
-                          setEditTitle(e.target.value);
-                          playKeyClick();
-                        }}
-                        className="w-full bg-transparent border-b-2 border-[var(--border-color)]/40 text-xl font-bold py-2 mb-4 text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] text-glow font-mono"
-                      />
+                      <div className="flex items-center gap-3 mb-4">
+                        <input
+                          type="text"
+                          placeholder="Note Title"
+                          value={editTitle}
+                          onChange={(e) => {
+                            setEditTitle(e.target.value);
+                            playKeyClick();
+                          }}
+                          className="flex-1 bg-transparent border-b-2 border-[var(--border-color)]/40 text-xl font-bold py-1.5 text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] text-glow font-mono"
+                        />
+                        <div className="flex items-center gap-2 shrink-0 select-none">
+                          {autoSaveStatus === 'saving' && (
+                            <span className="text-[10px] font-mono px-2 py-1 bg-yellow-950/90 text-yellow-400 border border-yellow-700/80 animate-pulse font-bold">
+                              💾 SAVING...
+                            </span>
+                          )}
+                          {autoSaveStatus === 'saved' && (
+                            <span className="text-[10px] font-mono px-2 py-1 bg-green-950/90 text-green-400 border border-green-700/80 font-bold">
+                              ✓ SAVED
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={saveNote}
+                            className="retro-button px-3 py-1 text-xs font-bold uppercase"
+                            title="Save Note (Ctrl + S)"
+                          >
+                            💾 SAVE
+                          </button>
+                        </div>
+                      </div>
                       <textarea
                         ref={textareaRef}
                         onDrop={handleDropImage}

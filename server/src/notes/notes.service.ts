@@ -394,6 +394,14 @@ export class NotesService {
       include: {
         folder: true,
         tags: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            streak: true,
+          },
+        },
       },
     });
   }
