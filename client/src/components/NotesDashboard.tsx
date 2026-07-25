@@ -2050,11 +2050,33 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                     {activeStatus === 'favorite' ? (
                       <>
                         <span className="text-2xl">⭐</span>
-                        <p className="font-bold text-glow">NO BOOKMARKS YET</p>
-                        <p className="text-[11px] text-gray-400">Click &quot;♡ BOOKMARK&quot; on any note to save your favorite notes here!</p>
+                        <p className="font-bold text-glow uppercase">NO BOOKMARKS YET</p>
+                        <p className="text-[11px] text-gray-400 not-italic">Click &quot;♡ BOOKMARK&quot; on any note to save your favorite notes here!</p>
+                      </>
+                    ) : activeStatus === 'pinned' ? (
+                      <>
+                        <span className="text-2xl">📌</span>
+                        <p className="font-bold text-glow uppercase">NO PINNED NOTES</p>
+                        <p className="text-[11px] text-gray-400 not-italic">Pin important notes to keep them at the top of your list.</p>
+                      </>
+                    ) : activeStatus === 'archived' ? (
+                      <>
+                        <span className="text-2xl">📦</span>
+                        <p className="font-bold text-glow uppercase">ARCHIVE IS EMPTY</p>
+                        <p className="text-[11px] text-gray-400 not-italic">Archived notes will be safely stored here.</p>
+                      </>
+                    ) : activeStatus === 'trashed' ? (
+                      <>
+                        <span className="text-2xl">🗑️</span>
+                        <p className="font-bold text-glow uppercase">TRASH CAN IS EMPTY</p>
+                        <p className="text-[11px] text-gray-400 not-italic">Deleted notes will move here before permanent removal.</p>
                       </>
                     ) : (
-                      <p>NO COMPATIBLE NOTES MATCHING.</p>
+                      <>
+                        <span className="text-2xl">✍️</span>
+                        <p className="font-bold text-glow uppercase">YOUR NOTEBOOK IS WAITING</p>
+                        <p className="text-[11px] text-gray-400 not-italic">Create your first note to start writing!</p>
+                      </>
                     )}
                   </div>
                 )}
