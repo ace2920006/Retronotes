@@ -57,6 +57,8 @@ interface Note {
   } | null;
   reactions?: any[];
   comments?: any[];
+}
+
 const HighlightedText = ({ text, query }: { text: string; query: string }) => {
   if (!text || !query || !query.trim() || query.startsWith("?")) return <>{text}</>;
   const trimmedQuery = query.trim();
