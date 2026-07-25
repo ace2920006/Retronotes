@@ -210,11 +210,13 @@ export class NotesService {
       };
     }
 
-    // Search filter (title or content)
+    // Search filter (title, content, tags, or author name)
     if (search) {
       whereClause.OR = [
-        { title: { contains: search } },
-        { content: { contains: search } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } },
+        { tags: { some: { name: { contains: search, mode: 'insensitive' } } } },
+        { user: { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
