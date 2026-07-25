@@ -2436,18 +2436,18 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 </div>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 select-none">
-                  <span className="text-6xl mb-4 text-glow animate-pulse">📼</span>
+                  <span className="text-6xl mb-4 text-glow animate-pulse">✍️</span>
                   <h2 className="text-xl font-bold uppercase tracking-wider text-glow mb-2">
-                    {notes.length === 0 ? "No notes yet" : "No note selected"}
+                    {notes.length === 0 ? "✍️ Your notebook is waiting" : "No note selected"}
                   </h2>
                   <p className="text-xs text-gray-500 max-w-sm font-sans mb-6">
-                    {notes.length === 0 ? "Start recording your ideas..." : "Select a note from the column to the left, or write a new one to begin editing."}
+                    {notes.length === 0 ? "Create your first note to start recording your ideas and thoughts!" : "Select a note from the column to the left, or write a new one to begin editing."}
                   </p>
                   <button
                     onClick={createNewNote}
-                    className="retro-button px-6 py-2.5 uppercase text-xs font-bold border-4"
+                    className="retro-button px-6 py-2.5 uppercase text-xs font-bold border-4 hover:bg-[var(--accent-color)] hover:text-black transition-colors"
                   >
-                    [ + Create Note ]
+                    [ ✍️ Create First Note ]
                   </button>
                 </div>
               )}
