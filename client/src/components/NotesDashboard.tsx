@@ -1414,7 +1414,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     const defaultCommands = [
       { id: 'new-note', label: '📝 Create a new note', action: () => { createNewNote(); setShowCommandPalette(false); } },
       { id: 'theme-switch', label: '🎨 Switch theme...', action: () => { setPaletteActiveView('theme'); setPaletteSelectedIndex(0); } },
-      { id: 'go-favorites', label: '⭐ Go to Favorites', action: () => { setActiveStatus('favorite'); setSelectedFolderId(null); setSelectedTag(null); setShowCommandPalette(false); } },
+      { id: 'go-favorites', label: '⭐ Go to My Bookmarks', action: () => { setActiveStatus('favorite'); setSelectedFolderId(null); setSelectedTag(null); setShowCommandPalette(false); } },
       { id: 'open-settings', label: '⚙️ Open Settings / Help', action: () => { setShowShortcutHelp(true); setShowCommandPalette(false); } },
     ];
 
@@ -1749,7 +1749,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         {stats && (
           <div className="bg-[var(--panel-bg)]/80 border-b border-[var(--border-color)]/30 px-6 py-2 flex flex-wrap gap-6 text-[10px] font-mono select-none z-10 text-glow">
             <span className="flex items-center gap-1.5">📚 Total Notes: <strong className="text-[var(--accent-color)]">{stats.totalNotes}</strong></span>
-            <span className="flex items-center gap-1.5">⭐ Favorites: <strong className="text-yellow-500">{stats.favoriteCount}</strong></span>
+            <span className="flex items-center gap-1.5">⭐ My Bookmarks: <strong className="text-yellow-500">{stats.favoriteCount}</strong></span>
             <span className="flex items-center gap-1.5">📌 Pinned: <strong className="text-glow">{stats.pinnedCount}</strong></span>
             <span className="flex items-center gap-1.5">🗑 Trash: <strong className="text-red-500">{stats.trashedCount}</strong></span>
           </div>
@@ -1858,7 +1858,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   {[
                     { key: 'all', label: '📖 All Notes', count: notes.filter(n => !n.isTrashed && !n.isArchived).length },
                     { key: 'pinned', label: '📌 Pinned Notes', count: notes.filter(n => n.isPinned && !n.isTrashed && !n.isArchived).length },
-                    { key: 'favorite', label: '⭐ Favorites', count: notes.filter(n => n.isFavorite && !n.isTrashed && !n.isArchived).length },
+                    { key: 'favorite', label: '⭐ My Bookmarks', count: notes.filter(n => n.isFavorite && !n.isTrashed && !n.isArchived).length },
                     { key: 'archived', label: '📦 Archive', count: notes.filter(n => n.isArchived && !n.isTrashed).length },
                     { key: 'trashed', label: '🗑️ Trash Can', count: notes.filter(n => n.isTrashed).length }
                   ].map((filter) => (
@@ -1972,7 +1972,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 {[
                   { key: 'all', label: 'ALL', icon: '📖' },
                   { key: 'pinned', label: 'PINNED', icon: '📌' },
-                  { key: 'favorite', label: 'FAVS', icon: '⭐' },
+                  { key: 'favorite', label: 'MY BOOKMARKS', icon: '⭐' },
                   { key: 'archived', label: 'ARCHIVE', icon: '📦' },
                   { key: 'trashed', label: 'TRASH', icon: '🗑️' }
                 ].map((f) => {
@@ -2046,8 +2046,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 ))}
                 
                 {notes.length === 0 && (
-                  <div className="p-8 text-center text-xs text-gray-500 italic select-none">
-                    NO COMPATIBLE NOTES MATCHING.
+                  <div className="p-8 text-center text-xs text-gray-500 italic select-none flex flex-col items-center justify-center gap-2">
+                    {activeStatus === 'favorite' ? (
+                      <>
+                        <span className="text-2xl">⭐</span>
+                        <p className="font-bold text-glow">NO BOOKMARKS YET</p>
+                        <p className="text-[11px] text-gray-400">Click &quot;♡ BOOKMARK&quot; on any note to save your favorite notes here!</p>
+                      </>
+                    ) : (
+                      <p>NO COMPATIBLE NOTES MATCHING.</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -2208,10 +2216,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                       </button>
                       <button
                         onClick={() => toggleProperty('isFavorite')}
-                        className={`retro-button px-2.5 py-1 text-[10px] ${selectedNote.isFavorite ? 'bg-[var(--accent-color)] text-black' : ''}`}
-                        title="Add to Favorites"
+                        className={`retro-button px-2.5 py-1 text-[10px] ${selectedNote.isFavorite ? 'bg-[var(--accent-color)] text-black font-bold' : ''}`}
+                        title={selectedNote.isFavorite ? "Remove from bookmarks" : "Bookmark this note"}
                       >
-                        ⭐ FAV
+                        {selectedNote.isFavorite ? '♥ BOOKMARKED' : '♡ BOOKMARK'}
                       </button>
                       <button
                         onClick={() => toggleProperty('isArchived')}
