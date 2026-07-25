@@ -181,7 +181,7 @@ export class NotesService {
         whereClause.isTrashed = false;
       } else if (status === 'trashed') {
         whereClause.isTrashed = true;
-      } else if (status === 'favorite') {
+      } else if (status === 'favorite' || status === 'bookmarks' || status === 'bookmarked') {
         whereClause.isFavorite = true;
         whereClause.isTrashed = false;
         whereClause.isArchived = false;
