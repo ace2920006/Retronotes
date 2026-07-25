@@ -57,7 +57,25 @@ interface Note {
   } | null;
   reactions?: any[];
   comments?: any[];
-}
+const HighlightedText = ({ text, query }: { text: string; query: string }) => {
+  if (!text || !query || !query.trim() || query.startsWith("?")) return <>{text}</>;
+  const trimmedQuery = query.trim();
+  const escapedQuery = trimmedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === trimmedQuery.toLowerCase() ? (
+          <mark key={i} className="bg-[var(--accent-color)] text-black font-bold px-0.5 rounded-sm">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+};
 
 interface DashboardStats {
   totalNotes: number;
@@ -1640,12 +1658,21 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search notes... (?Ask AI)"
+                placeholder="Search title, content, author, #tags... (?Ask AI)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && runAiSearch()}
-                className="px-3 py-1.5 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] w-56 font-mono"
+                className="px-3 py-1.5 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] w-64 font-mono pr-7"
               />
+              {searchQuery && !searchQuery.startsWith("?") && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1.5 text-xs text-gray-400 hover:text-white"
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
               {searchQuery.startsWith("?") && (
                 <button
                   onClick={runAiSearch}
@@ -2009,6 +2036,15 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                       {group.notes.map((note) => {
                         const isSelected = selectedNote?.id === note.id;
                         const wordCount = note.content.trim().split(/\s+/).filter(Boolean).length;
+                        let rawContent = note.content.replace(/[#*`]/g, '') || 'Empty note content...';
+                        
+                        if (searchQuery && !searchQuery.startsWith("?") && rawContent.toLowerCase().includes(searchQuery.toLowerCase())) {
+                          const idx = rawContent.toLowerCase().indexOf(searchQuery.toLowerCase());
+                          const start = Math.max(0, idx - 25);
+                          const end = Math.min(rawContent.length, idx + searchQuery.length + 45);
+                          rawContent = (start > 0 ? '...' : '') + rawContent.substring(start, end) + (end < rawContent.length ? '...' : '');
+                        }
+
                         return (
                           <article
                             key={note.id}
@@ -2020,11 +2056,12 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                             <div className="flex justify-between items-start gap-2 mb-1.5">
                               <h3 className={`text-sm font-bold truncate flex-1 text-glow ${isSelected ? 'text-[var(--accent-color)]' : ''}`}>
                                 {note.color && <span className="mr-1.5 select-none" style={{ color: note.color }}>●</span>}
-                                {note.isPinned && "📌 "}{note.isFavorite && "⭐ "}{note.title}
+                                {note.isPinned && "📌 "}{note.isFavorite && "⭐ "}
+                                <HighlightedText text={note.title} query={searchQuery} />
                               </h3>
                               {note.folder && (
                                 <span
-                                  className="text-[9px] px-1 py-0.5 border text-black font-bold uppercase"
+                                  className="text-[9px] px-1 py-0.5 border text-black font-bold uppercase shrink-0"
                                   style={{ backgroundColor: note.folder.color || 'gray', borderColor: note.folder.color || 'gray' }}
                                 >
                                   {note.folder.name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4)}
@@ -2032,8 +2069,23 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                               )}
                             </div>
                             <p className="text-xs text-gray-500 line-clamp-2 leading-4 mb-2">
-                              {note.content.replace(/[#*`]/g, '') || 'Empty note content...'}
+                              <HighlightedText text={rawContent} query={searchQuery} />
                             </p>
+
+                            {/* Author & Tags match indicators */}
+                            <div className="flex flex-wrap items-center gap-1.5 mb-2 text-[9px] text-gray-400 font-mono">
+                              {note.user?.name && (
+                                <span className="flex items-center gap-1 bg-[var(--bg-color)] px-1.5 py-0.5 border border-[var(--border-color)]/40 rounded-sm">
+                                  👤 <HighlightedText text={note.user.name} query={searchQuery} />
+                                </span>
+                              )}
+                              {note.tags && note.tags.length > 0 && note.tags.map(t => (
+                                <span key={t.id || t.name} className="bg-[var(--panel-bg)] px-1 py-0.5 border border-[var(--border-color)]/60 text-gray-400">
+                                  #<HighlightedText text={t.name} query={searchQuery} />
+                                </span>
+                              ))}
+                            </div>
+
                             <div className="flex justify-between items-center text-[10px] text-gray-600 font-sans">
                               <span>{new Date(note.updatedAt).toLocaleDateString()}</span>
                               <span>{wordCount} words</span>
@@ -2070,6 +2122,12 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <span className="text-2xl">🗑️</span>
                         <p className="font-bold text-glow uppercase">TRASH CAN IS EMPTY</p>
                         <p className="text-[11px] text-gray-400 not-italic">Deleted notes will move here before permanent removal.</p>
+                      </>
+                    ) : searchQuery ? (
+                      <>
+                        <span className="text-2xl">🔍</span>
+                        <p className="font-bold text-glow uppercase">NO MATCHES FOR &quot;{searchQuery}&quot;</p>
+                        <p className="text-[11px] text-gray-400 not-italic">Try searching by title, content, author name, or #tags.</p>
                       </>
                     ) : (
                       <>
