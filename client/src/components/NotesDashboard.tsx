@@ -1014,8 +1014,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         e.preventDefault();
         createNewNote();
       }
-      // Ctrl + K (Search / Command Palette)
-      if (e.ctrlKey && e.key === "k") {
+      // Ctrl + K or Ctrl + F (Search / Command Palette)
+      if (e.ctrlKey && (e.key === "k" || e.key === "f")) {
         e.preventDefault();
         setPaletteSearch("");
         setPaletteActiveView('main');
