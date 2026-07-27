@@ -8,37 +8,72 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 
 ---
 
-## 🎨 Retro UI & Aesthetics
+## 🎨 Retro Touches & Aesthetics
 
-- 📺 **CRT Scanline & Glass Effects**: Curated retro CRT screen filter with adjustable glass curvature, scanline density, and phosphor screen flickers.
-- 🔤 **Vintage Pixel Typography**: Nostalgic monospace font pairing reminiscent of 90s terminal displays (VT100 & MS-DOS era).
-- 🎨 **5 Phosphor Display Themes**: Switch between iconic display monitors:
+- ⚡ **Startup Boot Animation**: Authentic retro BIOS booting screen with hardware diagnostics and glowing CRT scan lines.
+- 🔊 **Typing & Mechanical Sounds**: Optional Web Audio synthesized sound effects (tactile keypress clicks, spacebar clacks, floppy disk saves, toggle beeps).
+- 💚 **Cursor Blink**: Glowing phosphor cursor box with blinking animation (`animate-pulse`).
+- 👾 **Pixel Icons**: Vintage 8-bit styled retro icons and custom SVGs across the interface.
+- 📺 **CRT Scanline & Flicker Toggle**: Curated retro CRT screen filter with adjustable glass curvature, scanline intensity, and toggleable phosphor screen flickers.
+- 🎨 **5 Phosphor Display Themes**:
   - 🟢 **Green CRT** (Classic Matrix / IBM Terminal)
   - 🟠 **Amber CRT** (Vintage Monochrome Phosphor)
   - 🏛️ **Win95 Classic** (90s System Desktop Palette)
   - 🔮 **Cyberpunk Neon** (Vibrant Synthetic Retro Glow)
   - ⬛ **Carbon Dark** (Sleek Dark Modern Terminal)
-- 🔘 **Animated Tactile Controls**: Mechanical keyboard sound effects (key clicks, floppy disk saves, toggle beeps) with tactile 3D retro buttons and glowing hover states.
-- ⚡ **Retro BIOS Boot Loader**: Nostalgic system startup screen with diagnostic checks and smooth CRT scan transitions.
 
 ---
 
-## 📝 Core Note Features
+## 📝 Note Features & Capabilities
 
-Beyond standard note-taking, RetroNotes equips you with rich organizing tools:
-
-- 📌 **Pin Notes**: Pin essential notes to the top of your workspace deck for immediate access.
-- ⭐ **Favorite Notes**: Mark notes as favorites to build a curated personal collection.
+- 📌 **Pin Notes**: Pin critical notes to the top of your deck for instant access.
+- ⭐ **Favorite Notes**: Bookmark notes to keep your most valued thoughts handy.
 - 🏷️ **Tags System**: Categorize notes using custom tags (`#ideas`, `#coding`, `#study`) to filter lists instantly.
-- 📅 **Date Created & Last Edited**: Precise timestamp tracking displaying creation and modification history for every note.
+- 📅 **Date Created & Last Edited**: Precise timestamp tracking showing creation and last modified timestamps.
 - 📝 **Create Notes**: Dual-pane Markdown editor featuring raw text input on the left and live rendered HTML preview on the right.
-- ✏️ **Edit Notes**: Debounced auto-saving, syntax highlighting, list formatting, and inline status indicator (`Draft` vs `Saved`).
-- 🗑️ **Delete & Trash Can**: Soft-delete notes to a dedicated Trash Can with single-click restoration or permanent purge.
-- 📁 **Folder Directories**: Organize notes into custom folders (e.g., Work, Personal, College) with custom color badges.
-- 🔍 **Search & Gemini AI Search**: Search notes instantly by title/content, or query notes using natural language AI search (`?query`).
-- 💾 **Local Storage & Offline Sync**: Full local storage fallback allowing offline reading, writing, and editing with seamless backend database sync.
-- 📟 **Gemini AI Companion**: Drawer assistant offering note summarization, tag suggestions, title generation, grammar correction, and flashcards generation.
-- 📂 **Export Options**: One-click export to Markdown (`.md`), plain text (`.txt`), or print-to-PDF format.
+- ✏️ **Edit Notes**: Real-time debounced auto-saving, syntax highlighting, list formatting, and inline status indicator.
+- 🗑️ **Delete Notes**: Soft-delete notes to a dedicated Trash Can with single-click restoration or permanent purge.
+- 📁 **Folder Directories**: Organize notes into custom directories with custom color badges.
+- 🔍 **Search & AI Search**: Instant keyword search, tag filtering, and natural language Gemini AI search.
+
+---
+
+## 📤 Export & 📥 Import Notes
+
+### 📤 Export Formats
+- 📄 **TXT**: Plain text export with formatted header.
+- 📝 **MD**: Standard Markdown file format (`.md`).
+- 📋 **JSON**: Structured JSON payload containing title, content, tags, folder, and timestamps.
+- 🖨️ **PDF**: Print-ready document layout formatted for PDF archiving.
+
+### 📥 Import Notes
+- 📂 **Import `notes.json`**: One-click import tool allowing users to upload `notes.json` files to automatically restore or bulk-create notes in their workspace.
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action | Description |
+| :--- | :--- | :--- |
+| `Ctrl + N` | **New Note** | Create a new blank note instantly |
+| `Ctrl + S` | **Save Note** | Force immediate save of active note |
+| `Ctrl + F` / `Ctrl + K` | **Search** | Open global search & command palette |
+| `Delete` | **Delete Note** | Move active note to Trash Can |
+| `Ctrl + P` | **Pin Note** | Toggle pinned status on active note |
+| `Ctrl + D` | **Duplicate Note** | Create a clone of the selected note |
+| `Ctrl + T` | **Theme Studio** | Open CRT display theme selector |
+| `Esc` | **Close Drawers** | Exit drawers, help modals, or search palette |
+
+---
+
+## 📊 Dashboard Statistics
+
+The built-in analytics dashboard gives real-time visibility into your notes system:
+- 📊 **Total Notes**: Complete count of active, archived, and trashed notes.
+- 📌 **Pinned Notes**: Count of notes currently pinned to top deck.
+- ⭐ **Favorites**: Number of bookmarked favorite notes.
+- 💾 **Storage Used**: Live calculation of browser `localStorage` capacity utilized in KB/MB.
+- 🔥 **Writing Streak**: Daily writing streak tracker with unlockable achievement badges.
 
 ---
 
@@ -179,8 +214,11 @@ Open [http://localhost:3001](http://localhost:3001) in your browser.
 - [x] 📁 Folder directories & categorization
 - [x] 🔍 Text search & Gemini AI semantic search
 - [x] 📝 Dual-pane Markdown editor & preview
-- [x] 💾 Local storage offline fallback & database sync
-- [x] 📺 CRT scanline effects, glass curves & themes
+- [x] 📤 Export to TXT, MD, JSON, and PDF
+- [x] 📥 Import `notes.json` files
+- [x] ⌨️ Keyboard Shortcuts (`Ctrl+N`, `Ctrl+S`, `Ctrl+F`, `Delete`)
+- [x] 📊 Live Dashboard stats (Total Notes, Pinned, Favorites, Storage Used)
+- [x] 🎮 Retro Touches (BIOS boot animation, sound effects, CRT flicker toggle)
 - [ ] 🤝 Collaborative real-time note editing rooms (Socket.IO)
 - [ ] 🎙️ Ambient Lofi Radio & text-to-speech voice reader
 - [ ] ☁️ Direct cloud export (Google Drive & Dropbox integration)
