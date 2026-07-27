@@ -982,6 +982,40 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     document.body.removeChild(element);
   };
 
+  const handleImportJsonFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const parsed = JSON.parse(text);
+        const notesToImport = Array.isArray(parsed) ? parsed : [parsed];
+
+        for (const item of notesToImport) {
+          if (!item.title && !item.content) continue;
+          const payload = {
+            title: item.title || "Imported Note",
+            content: item.content || "",
+            tagNames: Array.isArray(item.tags) ? item.tags : (item.tags ? [item.tags] : []),
+            folderId: item.folderId || null,
+            color: item.color || null,
+          };
+          if (!isOffline) {
+            await fetchAPI("/notes", { token, method: "POST", body: JSON.stringify(payload) });
+          }
+        }
+        playFloppySave();
+        fetchInitialData();
+      } catch (err) {
+        console.error("Failed to import notes.json:", err);
+        alert("Invalid notes.json file format.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // --- KEYBOARD SHORTCUTS ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1182,7 +1216,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       const dupTitle = `Copy of ${selectedNote.title}`;
       const dupContent = selectedNote.content;
       const dupFolderId = selectedNote.folderId || undefined;
-      const dupTags = selectedNote.tags.map(t => t.name);
+      const dupTags = selectedNote.tags ? selectedNote.tags.map(t => t.name) : [];
       const dupColor = editColor;
 
       if (isOffline) {
@@ -1505,7 +1539,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   useEffect(() => {
     if (!selectedNote) return;
 
-    const currentTags = selectedNote.tags.map(t => t.name).join(", ");
+    const currentTags = selectedNote.tags ? selectedNote.tags.map(t => t.name).join(", ") : "";
     const isSame =
       editTitle === selectedNote.title &&
       editContent === selectedNote.content &&
@@ -2286,6 +2320,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <button type="button" onClick={() => exportNote("md")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as MD file">MD</button>
                         <button type="button" onClick={() => exportNote("json")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as JSON file">JSON</button>
                         <button type="button" onClick={() => exportNote("pdf")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Print note to PDF">PDF</button>
+                        <label className="retro-button px-1.5 py-0.5 text-[9px] font-mono cursor-pointer" title="Import notes from JSON file">
+                          📥 IMPORT
+                          <input type="file" accept=".json" onChange={handleImportJsonFile} className="hidden" />
+                        </label>
                       </div>
 
                       {/* Toggles */}
