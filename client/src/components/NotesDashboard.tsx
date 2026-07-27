@@ -1007,7 +1007,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
           }
         }
         playFloppySave();
-        fetchInitialData();
+        loadData();
       } catch (err) {
         console.error("Failed to import notes.json:", err);
         alert("Invalid notes.json file format.");
