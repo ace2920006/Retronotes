@@ -1,87 +1,192 @@
-# RetroNotes
+# 📒 RetroNotes
 
-A modern note-taking application with a retro-inspired UI.
+![RetroNotes Banner](./retronotes_banner.png)
 
-![RetroNotes OS Screenshot](https://raw.githubusercontent.com/prisma/prisma/main/packages/client/images/prisma-logo.png) *(Note: Add your custom screenshots/GIFs here)*
+> **"Every thought deserves a page."** — RetroNotes combines nostalgic CRT computing aesthetics with state-of-the-art web technology.
 
-## Features
+A minimal, high-performance retro-themed note-taking web application featuring CRT monitor phosphor filters, dual-pane Markdown editing, offline synchronization, and an integrated Gemini AI assistant.
 
-- **📝 Rich Note Editing**: Dual-pane editor allowing raw Markdown input on the left and live-rendered HTML output on the right. Supports headings, bold/italics, lists, checkboxes, inline code, and syntax highlighted blocks.
-- **🎨 Phosphor CRT Themes**: 5 customizable vintage terminal themes (Amber CRT, Green CRT, Classic Windows 95 grey panels, Cyberpunk neon, and Slate carbon dark) accompanied by active screen scanner glass curves, phosphor flickers, and scanlines.
-- **🏷️ Categories & Tags**: Create directories/folders (e.g. Work, College, Personal) with custom labels and accent tag colors. Tag notes inline using standard tags (e.g., #ideas, #coding) to filter note lists instantly.
-- **📌 Pinned & Favorite Notes**: Keep critical notes pinned to the top of your deck or marked as favorites for instant access.
-- **📦 Archive & Trash**: Archive completed notes to remove them from your active workspace, or send deleted items to the Trash Can with empty/restore capability.
-- **🔍 Semantic Search**: Search notes instantly by title or content. Prepended search queries with `?` triggers a natural language semantic search powered by the Gemini AI Engine.
-- **⚡ Offline Sync (PWA Mode)**: Client-side local storage fallback caching allowing read, write, update, and search operations while offline, with seamless database sync once a connection is re-established.
-- **⌨️ Keyboard Shortcut Registry**: Native hotkey listeners (e.g. `Ctrl+S` to save note, `Ctrl+N` for new note, `Ctrl+P` to toggle pin, `Esc` to exit drawers) complete with an on-screen helper panel.
-- **📟 Gemini AI Assistant**: Slide-out terminal assistant providing AI-driven summaries, tag recommendations, grammar checking, title generation, and study flashcards generation from your notes.
-- **📂 Export Formats**: Instant client-side download of note files as Markdown (`.md`), plain text (`.txt`), or print-friendly layouts for PDF archiving.
+---
 
-## Tech Stack
+## 🎨 Retro UI & Aesthetics
 
-### Frontend Client
-- **Framework**: Next.js 16.2 (Turbopack) & React 19
-- **Aesthetics & Layout**: Tailwind CSS v4 & custom CRT glass scanner animations
-- **Authentication**: NextAuth.js v5 (Next.js server-action verified credentials)
+- 📺 **CRT Scanline & Glass Effects**: Curated retro CRT screen filter with adjustable glass curvature, scanline density, and phosphor screen flickers.
+- 🔤 **Vintage Pixel Typography**: Nostalgic monospace font pairing reminiscent of 90s terminal displays (VT100 & MS-DOS era).
+- 🎨 **5 Phosphor Display Themes**: Switch between iconic display monitors:
+  - 🟢 **Green CRT** (Classic Matrix / IBM Terminal)
+  - 🟠 **Amber CRT** (Vintage Monochrome Phosphor)
+  - 🏛️ **Win95 Classic** (90s System Desktop Palette)
+  - 🔮 **Cyberpunk Neon** (Vibrant Synthetic Retro Glow)
+  - ⬛ **Carbon Dark** (Sleek Dark Modern Terminal)
+- 🔘 **Animated Tactile Controls**: Mechanical keyboard sound effects (key clicks, floppy disk saves, toggle beeps) with tactile 3D retro buttons and glowing hover states.
+- ⚡ **Retro BIOS Boot Loader**: Nostalgic system startup screen with diagnostic checks and smooth CRT scan transitions.
 
-### Backend Server
-- **Framework**: NestJS (TypeScript controllers & service architecture)
-- **Database Engine**: MongoDB Atlas with Prisma ORM
-- **AI Integrations**: Gemini API (Google AI)
+---
 
-## Installation
+## 📝 Core Note Features
+
+Beyond standard note-taking, RetroNotes equips you with rich organizing tools:
+
+- 📌 **Pin Notes**: Pin essential notes to the top of your workspace deck for immediate access.
+- ⭐ **Favorite Notes**: Mark notes as favorites to build a curated personal collection.
+- 🏷️ **Tags System**: Categorize notes using custom tags (`#ideas`, `#coding`, `#study`) to filter lists instantly.
+- 📅 **Date Created & Last Edited**: Precise timestamp tracking displaying creation and modification history for every note.
+- 📝 **Create Notes**: Dual-pane Markdown editor featuring raw text input on the left and live rendered HTML preview on the right.
+- ✏️ **Edit Notes**: Debounced auto-saving, syntax highlighting, list formatting, and inline status indicator (`Draft` vs `Saved`).
+- 🗑️ **Delete & Trash Can**: Soft-delete notes to a dedicated Trash Can with single-click restoration or permanent purge.
+- 📁 **Folder Directories**: Organize notes into custom folders (e.g., Work, Personal, College) with custom color badges.
+- 🔍 **Search & Gemini AI Search**: Search notes instantly by title/content, or query notes using natural language AI search (`?query`).
+- 💾 **Local Storage & Offline Sync**: Full local storage fallback allowing offline reading, writing, and editing with seamless backend database sync.
+- 📟 **Gemini AI Companion**: Drawer assistant offering note summarization, tag suggestions, title generation, grammar correction, and flashcards generation.
+- 📂 **Export Options**: One-click export to Markdown (`.md`), plain text (`.txt`), or print-to-PDF format.
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend (`/client`)
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router) + [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + Custom CRT Glass Resets & CSS Variables
+- **Authentication**: [NextAuth.js v5](https://authjs.dev/) (Credentials & Google OAuth2)
+- **Markdown Processing**: `react-markdown`, `remark-gfm`, `rehype-raw`
+
+### Backend (`/server`)
+- **Framework**: [NestJS 11](https://nestjs.com/) (TypeScript Controllers, Modules & Services)
+- **Database ORM**: [Prisma ORM v7](https://www.prisma.io/)
+- **Database Engine**: [MongoDB Atlas](https://www.mongodb.com/atlas)
+- **AI Integration**: [Google Gemini API](https://ai.google.dev/) (`gemini-2.5-flash`)
+- **Security**: Passport JWT authentication & bcrypt password hashing
+
+---
+
+## 📂 Folder Structure
+
+```
+Retronotes/
+├── client/                     # Next.js 16 Frontend Application
+│   ├── src/
+│   │   ├── app/                # App Router (Pages & API routes)
+│   │   │   ├── api/auth/       # NextAuth API endpoints
+│   │   │   ├── login/          # Login & Signup forms with CAPTCHA
+│   │   │   ├── page.tsx        # Main application landing / dashboard page
+│   │   │   ├── layout.tsx      # Root HTML layout with CRT theme scripts
+│   │   │   └── globals.css     # Design tokens, CRT resets & animation keyframes
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── NotesDashboard.tsx  # Core dual-pane editor & workspace dashboard
+│   │   │   ├── Chatbox.tsx         # Global floating Retro-Muse AI chatbox
+│   │   │   ├── CassettePlayer.tsx  # Retro cassette ambient music player
+│   │   │   └── ThemeGalleryModal.tsx # CRT Monitor theme switcher
+│   │   └── lib/                # Utilities, audio engine, and API helpers
+│   │       ├── api.ts          # Centralized fetch wrapper with JWT header injection
+│   │       └── retroAudio.ts   # Web Audio API sound synthesis engine
+│   └── package.json
+│
+├── server/                     # NestJS 11 Backend API Service
+│   ├── prisma/
+│   │   ├── schema.prisma       # Prisma MongoDB schema (Users, Notes, Folders, Tags, etc.)
+│   │   └── seed.ts             # Database seeder script
+│   ├── src/
+│   │   ├── ai/                 # Gemini AI integration service & endpoints
+│   │   ├── auth/               # Passport JWT authentication service & controllers
+│   │   ├── notes/              # Notes CRUD, feed filters, & trash management
+│   │   ├── folders/            # Folder directory CRUD service
+│   │   ├── tags/               # Tag management & tag-following service
+│   │   ├── comments/           # Note comments & thread reply system
+│   │   ├── reactions/          # Note reaction counters (Love, Fire, Insightful, Clap)
+│   │   ├── follows/            # Author follow/unfollow system
+│   │   ├── users/              # User profile stats & achievement tracking
+│   │   └── main.ts             # NestJS bootstrap server configuration
+│   └── package.json
+│
+├── retronotes_banner.png       # Project banner graphic
+└── README.md                   # System documentation
+```
+
+---
+
+## ⚡ Installation Guide
 
 ### Prerequisites
-- Node.js (v20 or higher)
-- NPM (v10 or higher)
+- [Node.js](https://nodejs.org/) (v20.0.0 or higher)
+- [npm](https://www.npmjs.com/) (v10.0.0 or higher)
+- MongoDB Atlas database connection string (or local MongoDB)
 
-### 1. Server Setup
-Navigate to the `server/` directory and configure environment keys:
+### 1. Clone Repository
+```bash
+git clone https://github.com/ace2920006/Retronotes.git
+cd Retronotes
+```
+
+### 2. Backend Setup (`/server`)
 ```bash
 cd server
 npm install
 ```
-Create a `.env` file in the `server/` folder:
+
+Create a `.env` file inside the `server/` directory:
 ```env
-DATABASE_URL="mongodb+srv://<username>:<password>@cluster0.mongodb.net/retronotes?retryWrites=true&w=majority"
-JWT_SECRET="your-jwt-auth-secret-key"
-GEMINI_API_KEY="your-google-gemini-api-key"
+DATABASE_URL="mongodb+srv://<username>:<password>@cluster.mongodb.net/retronotes?retryWrites=true&w=majority"
+JWT_SECRET="retronotes_jwt_secret_key_2026"
+PORT=3000
+GEMINI_API_KEY="your_google_gemini_api_key"
 ```
-Rebuild database client and seed notes:
+
+Initialize Prisma schema & seed initial data:
 ```bash
 npx prisma generate
 npx prisma db seed
 ```
-Run NestJS dev server:
+
+Start the NestJS backend server:
 ```bash
 npm run start:dev
 ```
+The backend API will run on `http://localhost:3000`.
 
-### 2. Client Setup
-Navigate to the `client/` directory and configure credentials:
+### 3. Frontend Setup (`/client`)
+Open a new terminal window, navigate to the `client/` directory, and install dependencies:
 ```bash
-cd ../client
+cd client
 npm install
 ```
-Create a `.env.local` file in the `client/` folder:
+
+Create a `.env.local` file inside the `client/` directory:
 ```env
 NEXTAUTH_URL="http://localhost:3001"
-NEXTAUTH_SECRET="your-nextauth-session-key"
+NEXTAUTH_SECRET="retronotes_nextauth_secret_key_2026"
 NEXT_PUBLIC_API_URL="http://localhost:3000"
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
 ```
-Run Next.js client dev server:
+
+Start the Next.js dev server:
 ```bash
-npm run dev
+npm run dev -- -p 3001
 ```
-Open [http://localhost:3001](http://localhost:3001) in your browser. Log in with the preloaded credentials:
+Open [http://localhost:3001](http://localhost:3001) in your browser.
+
+#### Demo Credentials
 - **Email**: `test@example.com`
 - **Password**: `password`
 
-## Future Plans
-- [ ] Collaborative real-time note-sharing rooms using Socket.IO.
-- [ ] Audio note-readout engine converting Markdown text to lofi text-to-speech ambient voices.
-- [ ] Global Relaxing Lofi Radio integration inside the top utility bar.
-- [ ] Export directly to Google Drive / OneDrive modules.
+---
 
-## License
-Licensed under the [MIT License](./LICENSE) - copyright 2026.
+## 🗺️ Roadmap
+
+- [x] 📌 Pin Notes to workspace top
+- [x] ⭐ Favorite Notes bookmarking
+- [x] 🏷️ Inline Tags & Tag-based filtering
+- [x] 📅 Date Created & Last Edited timestamp tracking
+- [x] 📁 Folder directories & categorization
+- [x] 🔍 Text search & Gemini AI semantic search
+- [x] 📝 Dual-pane Markdown editor & preview
+- [x] 💾 Local storage offline fallback & database sync
+- [x] 📺 CRT scanline effects, glass curves & themes
+- [ ] 🤝 Collaborative real-time note editing rooms (Socket.IO)
+- [ ] 🎙️ Ambient Lofi Radio & text-to-speech voice reader
+- [ ] ☁️ Direct cloud export (Google Drive & Dropbox integration)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
