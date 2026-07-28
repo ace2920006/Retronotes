@@ -932,57 +932,6 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
-  const duplicateNote = async () => {
-    if (!selectedNote || selectedNote.id === "new-note-temp") return;
-    playFloppySave();
-    const dupTitle = `${editTitle || selectedNote.title} (Copy)`;
-    const tagNames = editTagsString
-      .split(",")
-      .map(t => t.trim())
-      .filter(t => t.length > 0);
-
-    const payload = {
-      title: dupTitle,
-      content: editContent,
-      folderId: editFolderId === "" ? null : editFolderId,
-      tagNames,
-      color: editColor === "" ? null : editColor,
-    };
-
-    try {
-      if (isOffline) {
-        const offlineNote: Note = {
-          id: "offline-" + Math.random().toString(36).substr(2, 9),
-          title: dupTitle,
-          content: editContent,
-          isPinned: false,
-          isArchived: false,
-          isTrashed: false,
-          isFavorite: false,
-          color: editColor || null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          folderId: editFolderId === "" ? null : editFolderId,
-          tags: tagNames.map((name, i) => ({ id: `offline-tag-${i}`, name })),
-        };
-        setNotes(prev => [offlineNote, ...prev]);
-        selectNote(offlineNote);
-      } else {
-        const saved = await fetchAPI("/notes", {
-          token,
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        if (saved) {
-          setNotes(prev => [saved, ...prev]);
-          selectNote(saved);
-        }
-      }
-    } catch (e) {
-      console.error("Duplicate note error:", e);
-    }
-  };
-
   // --- EXPORTS & UTILITIES ---
   const copyNoteToClipboard = () => {
     if (!selectedNote) return;
@@ -1065,6 +1014,59 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       }
     };
     reader.readAsText(file);
+  };
+
+  // --- ENHANCEMENTS AND HELPERS ---
+  const duplicateNote = async () => {
+    if (!selectedNote || selectedNote.id === "new-note-temp") return;
+    playFloppySave();
+    try {
+      const dupTitle = `Copy of ${selectedNote.title}`;
+      const dupContent = selectedNote.content;
+      const dupFolderId = selectedNote.folderId || undefined;
+      const dupTags = selectedNote.tags ? selectedNote.tags.map(t => t.name) : [];
+      const dupColor = editColor;
+
+      if (isOffline) {
+        const offlineNote: Note = {
+          id: "offline-" + Math.random().toString(36).substr(2, 9),
+          title: dupTitle,
+          content: dupContent,
+          isPinned: false,
+          isArchived: false,
+          isTrashed: false,
+          isFavorite: false,
+          color: dupColor || null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          folderId: dupFolderId || null,
+          tags: dupTags.map((name, i) => ({ id: `offline-tag-${i}`, name })),
+        };
+        const nextNotes = [offlineNote, ...notes];
+        setNotes(nextNotes);
+        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
+        setSelectedNote(offlineNote);
+      } else {
+        const saved = await fetchAPI("/notes", {
+          token,
+          method: "POST",
+          body: JSON.stringify({
+            title: dupTitle,
+            content: dupContent,
+            folderId: dupFolderId,
+            tagNames: dupTags,
+            color: dupColor,
+          }),
+        });
+        if (saved) {
+          setNotes(prev => [saved, ...prev]);
+          localStorage.setItem("retronotes-cache-notes", JSON.stringify([saved, ...notes]));
+          selectNote(saved);
+        }
+      }
+    } catch (e) {
+      console.error("Duplicate failed:", e);
+    }
   };
 
   // --- KEYBOARD SHORTCUTS ---
@@ -1259,58 +1261,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
-  // --- ENHANCEMENTS AND HELPERS ---
-  const duplicateNote = async () => {
-    if (!selectedNote || selectedNote.id === "new-note-temp") return;
-    playFloppySave();
-    try {
-      const dupTitle = `Copy of ${selectedNote.title}`;
-      const dupContent = selectedNote.content;
-      const dupFolderId = selectedNote.folderId || undefined;
-      const dupTags = selectedNote.tags ? selectedNote.tags.map(t => t.name) : [];
-      const dupColor = editColor;
 
-      if (isOffline) {
-        const offlineNote: Note = {
-          id: "offline-" + Math.random().toString(36).substr(2, 9),
-          title: dupTitle,
-          content: dupContent,
-          isPinned: false,
-          isArchived: false,
-          isTrashed: false,
-          isFavorite: false,
-          color: dupColor || null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          folderId: dupFolderId || null,
-          tags: dupTags.map((name, i) => ({ id: `offline-tag-${i}`, name })),
-        };
-        const nextNotes = [offlineNote, ...notes];
-        setNotes(nextNotes);
-        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-        setSelectedNote(offlineNote);
-      } else {
-        const saved = await fetchAPI("/notes", {
-          token,
-          method: "POST",
-          body: JSON.stringify({
-            title: dupTitle,
-            content: dupContent,
-            folderId: dupFolderId,
-            tagNames: dupTags,
-            color: dupColor,
-          }),
-        });
-        if (saved) {
-          setNotes(prev => [saved, ...prev]);
-          localStorage.setItem("retronotes-cache-notes", JSON.stringify([saved, ...notes]));
-          selectNote(saved);
-        }
-      }
-    } catch (e) {
-      console.error("Duplicate failed:", e);
-    }
-  };
 
   const themesList = THEMES.map((t) => t.id);
   const activeThemeObj = getThemeDef(theme);
