@@ -1398,6 +1398,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }, 50);
   };
 
+  const cleanFormatContent = () => {
+    if (!editContent) return;
+    playToggleBeep();
+    let cleaned = editContent.replace(/\r\n/g, "\n");
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+    cleaned = cleaned.split("\n").map(line => line.trimEnd()).join("\n");
+    cleaned = cleaned.trim();
+    setEditContent(cleaned);
+  };
+
   const getGroupedNotes = (notesList: Note[]) => {
     const today: Note[] = [];
     const yesterday: Note[] = [];
@@ -2316,6 +2326,14 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                           title="Duplicate this note"
                         >
                           👯 CLONE
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cleanFormatContent}
+                          className="retro-button px-1.5 py-0.5 text-[9px] font-mono"
+                          title="Format & clean extra blank lines and spaces"
+                        >
+                          🧹 CLEAN
                         </button>
                         <span className="text-[9px] text-gray-500 uppercase select-none mx-0.5">Export:</span>
                         <button type="button" onClick={() => exportNote("txt")} className="retro-button px-1.5 py-0.5 text-[9px] font-mono" title="Export as TXT file">TXT</button>
