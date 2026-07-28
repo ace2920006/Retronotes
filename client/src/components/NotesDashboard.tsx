@@ -1069,6 +1069,16 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }
   };
 
+  const cleanFormatContent = () => {
+    if (!editContent) return;
+    playToggleBeep();
+    let cleaned = editContent.replace(/\r\n/g, "\n");
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+    cleaned = cleaned.split("\n").map(line => line.trimEnd()).join("\n");
+    cleaned = cleaned.trim();
+    setEditContent(cleaned);
+  };
+
   // --- KEYBOARD SHORTCUTS ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1100,6 +1110,12 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       if (e.ctrlKey && e.key === "n") {
         e.preventDefault();
         createNewNote();
+      }
+      // Ctrl + Shift + F (Clean Formatting)
+      if (e.ctrlKey && e.shiftKey && (e.key === "F" || e.key === "f")) {
+        e.preventDefault();
+        cleanFormatContent();
+        return;
       }
       // Ctrl + K or Ctrl + F (Search / Command Palette)
       if (e.ctrlKey && (e.key === "k" || e.key === "f")) {
@@ -1398,15 +1414,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     }, 50);
   };
 
-  const cleanFormatContent = () => {
-    if (!editContent) return;
-    playToggleBeep();
-    let cleaned = editContent.replace(/\r\n/g, "\n");
-    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
-    cleaned = cleaned.split("\n").map(line => line.trimEnd()).join("\n");
-    cleaned = cleaned.trim();
-    setEditContent(cleaned);
-  };
+
 
   const getGroupedNotes = (notesList: Note[]) => {
     const today: Note[] = [];
@@ -2911,6 +2919,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Duplicate Note</span>
                   <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + D</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Clean Formatting</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + Shift + F</kbd>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Toggle Theme Studio</span>
