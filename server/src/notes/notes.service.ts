@@ -61,73 +61,8 @@ export class NotesService {
       },
     });
 
-    // --- STREAK & ACHIEVEMENTS SYSTEM ---
-    try {
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        let newStreak = user.streak;
-        const now = new Date();
-        
-        if (user.lastWriteDate) {
-          const lastDate = new Date(user.lastWriteDate);
-          
-          // Clear time component for accurate day comparison
-          const lastDateMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-          const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          
-          const diffTime = nowMidnight.getTime() - lastDateMidnight.getTime();
-          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-          
-          if (diffDays === 1) {
-            newStreak += 1;
-          } else if (diffDays > 1) {
-            newStreak = 1;
-          }
-          // If diffDays === 0 (same day), streak remains unchanged
-        } else {
-          newStreak = 1;
-        }
-
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { streak: newStreak, lastWriteDate: now },
-        });
-
-        // Trigger Achievement checks
-        const checkAndUnlockBadge = async (badgeId: string, condition: boolean, message: string) => {
-          if (condition) {
-            const hasBadge = await this.prisma.userAchievement.findUnique({
-              where: { badgeId_userId: { badgeId, userId } },
-            });
-            if (!hasBadge) {
-              await this.prisma.userAchievement.create({
-                data: { badgeId, userId },
-              });
-              // Create notification
-              await this.prisma.notification.create({
-                data: {
-                  type: 'PUBLISH', // Generic system notification
-                  userId,
-                  content: `🏆 Achievement Unlocked: ${message}!`,
-                },
-              });
-            }
-          }
-        };
-
-        // Badge 1: FIRST_NOTE
-        const noteCount = await this.prisma.note.count({ where: { userId, isTrashed: false } });
-        await checkAndUnlockBadge('FIRST_NOTE', noteCount >= 1, 'First Page (You wrote your first note)');
-
-        // Badge 2: 7-DAY STREAK
-        await checkAndUnlockBadge('SEVEN_DAY_STREAK', newStreak >= 7, '7-Day Writing Streak (Consistent scribe)');
-
-        // Badge 3: 50 NOTES
-        await checkAndUnlockBadge('FIFTY_NOTES', noteCount >= 50, 'Master Scribe (Written 50 notes)');
-      }
-    } catch (streakError) {
-      console.error('Streak system error:', streakError);
-    }
+    // Process streak & achievements in background
+    await this.processUserStreakAndAchievements(userId);
 
     return note;
   }
@@ -250,8 +185,8 @@ export class NotesService {
     // Popularity = uniqueReaders + views + (commentsCount * 3) + (reactionsCount * 2)
     if (feed === 'trending') {
       return notes.sort((a, b) => {
-        const scoreA = a.viewsCount + (a.comments.length * 3) + (a.reactions.length * 2);
-        const scoreB = b.viewsCount + (b.comments.length * 3) + (b.reactions.length * 2);
+        const scoreA = (a.viewsCount || 0) + (a.comments.length * 3) + (a.reactions.length * 2);
+        const scoreB = (b.viewsCount || 0) + (b.comments.length * 3) + (b.reactions.length * 2);
         return scoreB - scoreA; // descending
       });
     }
@@ -430,5 +365,66 @@ export class NotesService {
         isTrashed: true,
       },
     });
+  }
+
+  /**
+   * Private helper to process daily writing streak and unlock system achievement badges
+   */
+  private async processUserStreakAndAchievements(userId: string): Promise<void> {
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return;
+
+      let newStreak = user.streak;
+      const now = new Date();
+
+      if (user.lastWriteDate) {
+        const lastDate = new Date(user.lastWriteDate);
+        const lastDateMidnight = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+        const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        const diffTime = nowMidnight.getTime() - lastDateMidnight.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          newStreak += 1;
+        } else if (diffDays > 1) {
+          newStreak = 1;
+        }
+      } else {
+        newStreak = 1;
+      }
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { streak: newStreak, lastWriteDate: now },
+      });
+
+      const checkAndUnlockBadge = async (badgeId: string, condition: boolean, message: string) => {
+        if (!condition) return;
+        const hasBadge = await this.prisma.userAchievement.findUnique({
+          where: { badgeId_userId: { badgeId, userId } },
+        });
+        if (!hasBadge) {
+          await this.prisma.userAchievement.create({
+            data: { badgeId, userId },
+          });
+          await this.prisma.notification.create({
+            data: {
+              type: 'PUBLISH',
+              userId,
+              content: `🏆 Achievement Unlocked: ${message}!`,
+            },
+          });
+        }
+      };
+
+      const noteCount = await this.prisma.note.count({ where: { userId, isTrashed: false } });
+      await checkAndUnlockBadge('FIRST_NOTE', noteCount >= 1, 'First Page (You wrote your first note)');
+      await checkAndUnlockBadge('SEVEN_DAY_STREAK', newStreak >= 7, '7-Day Writing Streak (Consistent scribe)');
+      await checkAndUnlockBadge('FIFTY_NOTES', noteCount >= 50, 'Master Scribe (Written 50 notes)');
+    } catch (streakError) {
+      console.error('Streak system error:', streakError);
+    }
   }
 }
