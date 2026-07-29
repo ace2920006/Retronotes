@@ -41,7 +41,9 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 
 ## 📤 Export & 📥 Import Notes
 
-### 📤 Export Formats
+### 📤 Export Formats & Backups
+- 📦 **Export All Notes**: One-click global export button (`EXPORT ALL`) in header to download full JSON backup file (`retronotes_backup_YYYY-MM-DD.json`).
+- 🌐 **Backup API (`GET /notes/export/backup`)**: Authenticated server endpoint returning full database backup of user notes, directories, tags, and timestamps.
 - 📄 **TXT**: Plain text export with formatted header.
 - 📝 **MD**: Standard Markdown file format (`.md`).
 - 📋 **JSON**: Structured JSON payload containing title, content, tags, folder, and timestamps.
