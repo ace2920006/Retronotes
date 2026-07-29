@@ -114,7 +114,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  
+
   // Note editing state
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -159,7 +159,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // Keyboard shortcut help modal
   const [showShortcutHelp, setShowShortcutHelp] = useState(false);
   const [showThemeGallery, setShowThemeGallery] = useState(false);
-  
+
   // Folders modal CRUD
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -463,11 +463,11 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       const fullNote = await fetchAPI(`/notes/${note.id}`, { token });
       if (fullNote) {
         setNoteComments(fullNote.comments || []);
-        
+
         // Compute reaction counts
         const stats: Record<string, number> = { LOVE: 0, FIRE: 0, INSIGHTFUL: 0, CLAP: 0, EMOTIONAL: 0 };
         const reacted: Record<string, boolean> = { LOVE: false, FIRE: false, INSIGHTFUL: false, CLAP: false, EMOTIONAL: false };
-        
+
         (fullNote.reactions || []).forEach((r: any) => {
           if (stats[r.type] !== undefined) {
             stats[r.type] += 1;
@@ -576,7 +576,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         body: JSON.stringify({ followingId: authorId })
       });
       setIsFollowingAuthor(res.following);
-      
+
       // Update stats if we are looking at profile
       if (showProfileUserId === authorId) {
         loadUserProfile(authorId);
@@ -593,13 +593,13 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       // Load user public notes specifically:
       const userNotes = await fetchAPI(`/notes?feed=trending`, { token });
       const filteredNotes = userNotes.filter((n: any) => n.userId === userId);
-      
+
       setProfileData({
         ...userData,
         notes: filteredNotes
       });
       setProfileStats(statsData);
-      
+
       const checkFollow = await fetchAPI(`/follows/status/${userId}`, { token });
       setIsFollowingAuthor(checkFollow?.isFollowing || false);
     } catch (err) {
@@ -946,7 +946,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     if (!selectedNote) return;
 
     const titleClean = selectedNote.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    
+
     if (type === "pdf") {
       window.print();
       return;
@@ -1310,7 +1310,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   const themesList = THEMES.map((t) => t.id);
   const activeThemeObj = getThemeDef(theme);
-  
+
   const cycleTheme = () => {
     const currentIndex = themesList.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themesList.length;
@@ -1616,7 +1616,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // Basic client side markdown renderer
   const renderMarkdown = (text: string) => {
     if (!text) return "<p class='text-gray-500 italic'>Note content is empty...</p>";
-    
+
     let html = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -1632,7 +1632,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
     // Code blocks
     html = html.replace(/```(?:js|javascript|html|css)?\n([\s\S]*?)\n```/gim, '<pre><code>$1</code></pre>');
-    
+
     // Inline code
     html = html.replace(/`([^`]+)`/gim, '<code>$1</code>');
 
@@ -1806,21 +1806,19 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             {/* Toggle CRT overlay */}
             <button
               onClick={toggleCrt}
-              className={`retro-button px-2.5 py-1.5 text-xs font-mono flex items-center gap-1.5 transition-all ${
-                crtEnabled
+              className={`retro-button px-2.5 py-1.5 text-xs font-mono flex items-center gap-1.5 transition-all ${crtEnabled
                   ? 'bg-[var(--border-color)] text-[var(--fg-color)] border-[var(--accent-color)] shadow-[0_0_8px_var(--border-color)]'
                   : 'opacity-70 hover:opacity-100'
-              }`}
+                }`}
               title="Toggle retro CRT scanlines and monitor phosphor glow (CRT Overlay)"
             >
               <span className="text-sm">📺</span>
               <span className="font-bold">CRT SCANLINES:</span>
               <span
-                className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-none border ${
-                  crtEnabled
+                className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-none border ${crtEnabled
                     ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] shadow-[0_0_6px_var(--accent-color)]'
                     : 'bg-red-950/80 text-red-400 border-red-800'
-                }`}
+                  }`}
               >
                 {crtEnabled ? 'ACTIVE' : 'MUTED'}
               </span>
@@ -1834,9 +1832,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 setSoundEnabled(nextSound);
                 playToggleBeep();
               }}
-              className={`retro-button px-2 py-1 text-[10px] font-mono ${
-                soundOn ? 'bg-[var(--border-color)] text-[var(--bg-color)]' : ''
-              }`}
+              className={`retro-button px-2 py-1 text-[10px] font-mono ${soundOn ? 'bg-[var(--border-color)] text-[var(--bg-color)]' : ''
+                }`}
               title="Toggle retro interface typing and save sound effects"
             >
               AUDIO: {soundOn ? 'ON' : 'OFF'}
@@ -1883,7 +1880,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               <h2 className="text-3xl font-bold mb-6 text-center text-glow uppercase border-b-2 border-[var(--border-color)] pb-3">
                 🎛️ SYSTEM CONTROLS & DIAGNOSTICS
               </h2>
-              
+
               {stats ? (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   {/* Grid Box: Totals */}
@@ -1891,7 +1888,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                     <span className="text-4xl font-bold text-glow">{stats.totalNotes}</span>
                     <span className="text-[11px] text-gray-500 mt-2 uppercase font-bold">Total Notes</span>
                   </div>
-                  
+
                   {/* Grid Box: Pinned */}
                   <div className="retro-border border-dashed p-4 flex flex-col items-center justify-center text-center bg-[var(--bg-color)]">
                     <span className="text-4xl font-bold text-yellow-500">{stats.pinnedCount}</span>
@@ -1959,7 +1956,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         ) : (
           /* Main Note taking View */
           <main className="flex-1 flex flex-col md:flex-row overflow-hidden max-h-[calc(100vh-68px)]">
-            
+
             {/* Sidebar Navigation */}
             <aside className="w-full md:w-64 retro-border border-t-0 border-l-0 bg-[var(--panel-bg)] flex flex-col select-none max-h-full">
               {/* Quick Action: New Note */}
@@ -1990,11 +1987,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setSelectedFolderId(null);
                         setSelectedTag(null);
                       }}
-                      className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[var(--bg-color)] flex justify-between items-center transition-colors ${
-                        activeStatus === filter.key && !selectedFolderId && !selectedTag
+                      className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[var(--bg-color)] flex justify-between items-center transition-colors ${activeStatus === filter.key && !selectedFolderId && !selectedTag
                           ? 'border border-[var(--border-color)] bg-[var(--bg-color)] font-bold text-glow'
                           : ''
-                      }`}
+                        }`}
                     >
                       <span>{filter.label}</span>
                       <span className="text-[10px] text-gray-500">[{filter.count}]</span>
@@ -2024,11 +2020,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setSelectedTag(null);
                         setActiveStatus("all");
                       }}
-                      className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[var(--bg-color)] flex items-center gap-2 truncate ${
-                        selectedFolderId === f.id
+                      className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[var(--bg-color)] flex items-center gap-2 truncate ${selectedFolderId === f.id
                           ? 'border border-[var(--border-color)] bg-[var(--bg-color)] font-bold text-glow'
                           : ''
-                      }`}
+                        }`}
                     >
                       <span className="w-2 h-2 shrink-0" style={{ backgroundColor: f.color || 'gray' }}></span>
                       <span className="truncate">{f.name}</span>
@@ -2052,9 +2047,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setSelectedFolderId(null);
                         setActiveStatus("all");
                       }}
-                      className={`px-1.5 py-0.5 text-[10px] border border-[var(--border-color)]/50 hover:border-[var(--accent-color)] ${
-                        selectedTag === t.name ? 'bg-[var(--border-color)] text-black font-bold' : ''
-                      }`}
+                      className={`px-1.5 py-0.5 text-[10px] border border-[var(--border-color)]/50 hover:border-[var(--accent-color)] ${selectedTag === t.name ? 'bg-[var(--border-color)] text-black font-bold' : ''
+                        }`}
                     >
                       #{t.name}
                     </button>
@@ -2077,7 +2071,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 <span className="font-bold text-glow text-[11px] uppercase">
                   Notes ({notes.length})
                 </span>
-                
+
                 {/* Sort Order Toggle */}
                 <button
                   onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
@@ -2106,11 +2100,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setSelectedFolderId(null);
                         setSelectedTag(null);
                       }}
-                      className={`px-2 py-0.5 font-mono whitespace-nowrap transition-all uppercase flex items-center gap-1 border ${
-                        isActive
+                      className={`px-2 py-0.5 font-mono whitespace-nowrap transition-all uppercase flex items-center gap-1 border ${isActive
                           ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] font-bold shadow-[0_0_6px_var(--accent-color)]'
                           : 'bg-[var(--bg-color)] text-gray-400 border-[var(--border-color)]/40 hover:text-[var(--fg-color)] hover:border-[var(--border-color)]'
-                      }`}
+                        }`}
                     >
                       <span>{f.icon}</span>
                       <span>{f.label}</span>
@@ -2131,7 +2124,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         const isSelected = selectedNote?.id === note.id;
                         const wordCount = note.content.trim().split(/\s+/).filter(Boolean).length;
                         let rawContent = note.content.replace(/[#*`]/g, '') || 'Empty note content...';
-                        
+
                         if (searchQuery && !searchQuery.startsWith("?") && rawContent.toLowerCase().includes(searchQuery.toLowerCase())) {
                           const idx = rawContent.toLowerCase().indexOf(searchQuery.toLowerCase());
                           const start = Math.max(0, idx - 25);
@@ -2143,9 +2136,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                           <article
                             key={note.id}
                             onClick={() => selectNote(note)}
-                            className={`p-4 cursor-pointer hover:bg-[var(--panel-bg)]/50 transition-colors ${
-                              isSelected ? 'bg-[var(--panel-bg)] border-l-4 border-l-[var(--accent-color)]' : ''
-                            }`}
+                            className={`p-4 cursor-pointer hover:bg-[var(--panel-bg)]/50 transition-colors ${isSelected ? 'bg-[var(--panel-bg)] border-l-4 border-l-[var(--accent-color)]' : ''
+                              }`}
                           >
                             <div className="flex justify-between items-start gap-2 mb-1.5">
                               <h3 className={`text-sm font-bold truncate flex-1 text-glow ${isSelected ? 'text-[var(--accent-color)]' : ''}`}>
@@ -2190,7 +2182,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                     </div>
                   </div>
                 ))}
-                
+
                 {notes.length === 0 && (
                   <div className="p-8 text-center text-xs text-gray-500 italic select-none flex flex-col items-center justify-center gap-2">
                     {activeStatus === 'favorite' ? (
@@ -2262,7 +2254,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                       <button onClick={() => setSelectedNote(null)} className="w-4 h-4 bg-[#c0c0c0] border border-white border-b-gray-800 border-r-gray-800 flex items-center justify-center text-black text-[9px] font-sans font-bold hover:bg-gray-100" style={{ boxShadow: "inset 1px 1px 0px #fff, inset -1px -1px 0px #808080" }}>X</button>
                     </div>
                   </div>
-                  
+
                   {/* Editor Header Bar (Toolbar) */}
                   <div className="p-3 border-b-2 border-[var(--border-color)] bg-[var(--panel-bg)] flex justify-between items-center select-none z-10 flex-wrap gap-2 text-xs">
                     <div className="flex items-center gap-2">
@@ -2277,7 +2269,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                           <option key={f.id} value={f.id}>{f.name}</option>
                         ))}
                       </select>
-                      
+
                       {/* Tags Input */}
                       <input
                         type="text"
@@ -2301,9 +2293,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                             key={c.name}
                             type="button"
                             onClick={() => setEditColor(editColor === c.value ? "" : c.value)}
-                            className={`w-3 h-3 rounded-none border border-black cursor-pointer ${
-                              editColor === c.value ? 'outline-2 outline-[var(--accent-color)]' : ''
-                            }`}
+                            className={`w-3 h-3 rounded-none border border-black cursor-pointer ${editColor === c.value ? 'outline-2 outline-[var(--accent-color)]' : ''
+                              }`}
                             style={{ backgroundColor: c.value }}
                             title={c.name}
                           />
@@ -2358,9 +2349,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         <button
                           type="button"
                           onClick={copyNoteToClipboard}
-                          className={`retro-button px-1.5 py-0.5 text-[9px] font-mono transition-colors ${
-                            isCopied ? 'bg-[var(--accent-color)] text-black font-bold' : ''
-                          }`}
+                          className={`retro-button px-1.5 py-0.5 text-[9px] font-mono transition-colors ${isCopied ? 'bg-[var(--accent-color)] text-black font-bold' : ''
+                            }`}
                           title="Copy note content to clipboard"
                         >
                           {isCopied ? '✓ COPIED' : '📋 COPY'}
@@ -2550,7 +2540,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                       <span>📝 {editContent.trim().split(/\s+/).filter(Boolean).length} words</span>
                       <span>⏱ {Math.ceil(editContent.trim().split(/\s+/).filter(Boolean).length / 200)} min read</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-4">
                       {/* AI Toolbar Drawer options */}
                       {editContent && (
@@ -2562,7 +2552,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                           <button onClick={() => callAiAction('tags')} className="hover:text-white border border-[var(--border-color)] px-1">[SUGGEST TAGS]</button>
                         </div>
                       )}
-                      
+
                       <div className="flex items-center gap-3">
                         {/* Auto save indicator */}
                         <div className="flex items-center gap-1.5 font-mono text-[9px] select-none">
@@ -2618,9 +2608,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
               {/* Floating AI Terminal Drawer */}
               <div
-                className={`absolute top-0 right-0 h-full w-96 retro-border border-y-0 border-r-0 bg-[var(--panel-bg)] shadow-2xl transition-transform duration-300 z-20 flex flex-col ${
-                  aiOpen ? 'translate-x-0' : 'translate-x-full'
-                }`}
+                className={`absolute top-0 right-0 h-full w-96 retro-border border-y-0 border-r-0 bg-[var(--panel-bg)] shadow-2xl transition-transform duration-300 z-20 flex flex-col ${aiOpen ? 'translate-x-0' : 'translate-x-full'
+                  }`}
               >
                 {/* AI Panel Header */}
                 <div className="p-3 border-b-2 border-[var(--border-color)] bg-[var(--bg-color)] flex justify-between items-center select-none text-xs">
@@ -2678,11 +2667,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   {aiChat.map((msg, i) => (
                     <div
                       key={i}
-                      className={`p-3 border ${
-                        msg.role === 'user'
+                      className={`p-3 border ${msg.role === 'user'
                           ? 'border-[var(--border-color)]/40 bg-[var(--bg-color)]/60 text-right ml-6'
                           : 'border-green-800 bg-[var(--bg-color)]/20 mr-6'
-                      }`}
+                        }`}
                     >
                       <p className="text-[9px] text-gray-500 uppercase mb-1 font-bold">
                         {msg.role === 'user' ? 'USER QUERY' : 'AI RESPONSE'}
@@ -2850,21 +2838,21 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       {/* MODAL: Command Palette (Ctrl+K) */}
       {showCommandPalette && (
         <div className="fixed inset-0 bg-black/80 flex items-start justify-center p-4 pt-[15vh] z-[999] select-none">
-          <div 
+          <div
             className="retro-border bg-[var(--panel-bg)] max-w-lg w-full overflow-hidden shadow-2xl flex flex-col"
             onKeyDown={handlePaletteKeyDown}
           >
             {/* Windows 95 title or Command header */}
             <div className="win95-window-title flex justify-between items-center select-none text-[10px] uppercase font-bold py-1 px-3">
               <span>📟 Command Palette Console v1.0</span>
-              <button 
+              <button
                 onClick={() => setShowCommandPalette(false)}
                 className="text-[9px] border px-1 bg-[#c0c0c0] text-black hover:bg-red-500 hover:text-white"
               >
                 [X]
               </button>
             </div>
-            
+
             {/* Input field */}
             <div className="p-3 border-b border-[var(--border-color)]/30">
               <input
@@ -2879,7 +2867,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 className="w-full px-3 py-2 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] font-mono text-glow"
               />
             </div>
-            
+
             {/* Command / Search Results List */}
             <div className="max-h-[300px] overflow-y-auto divide-y divide-[var(--border-color)]/10 font-mono text-xs">
               {getCommandPaletteOptions().map((opt, idx) => {
@@ -2888,9 +2876,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                   <div
                     key={opt.id}
                     onClick={() => opt.action()}
-                    className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${
-                      isSelected ? 'bg-[var(--accent-color)] text-black font-bold' : 'hover:bg-[var(--bg-color)]/50'
-                    }`}
+                    className={`px-4 py-2.5 cursor-pointer flex justify-between items-center transition-colors ${isSelected ? 'bg-[var(--accent-color)] text-black font-bold' : 'hover:bg-[var(--bg-color)]/50'
+                      }`}
                   >
                     <span className="truncate">{opt.label}</span>
                     {isSelected && <span className="text-[9px] uppercase font-bold px-1 bg-black text-[var(--accent-color)]">[Enter]</span>}
@@ -2903,7 +2890,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 </div>
               )}
             </div>
-            
+
             {/* Help / Shortcut hint footer */}
             <div className="bg-[var(--bg-color)] px-4 py-2 border-t border-[var(--border-color)]/30 flex justify-between text-[9px] text-gray-500 select-none">
               <span>↑↓ to navigate</span>
