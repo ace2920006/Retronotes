@@ -1140,6 +1140,12 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         cleanFormatContent();
         return;
       }
+      // Ctrl + Shift + E (Export All Notes Backup)
+      if (e.ctrlKey && e.shiftKey && (e.key === "E" || e.key === "e")) {
+        e.preventDefault();
+        exportAllNotesAsJson();
+        return;
+      }
       // Ctrl + K or Ctrl + F (Search / Command Palette)
       if (e.ctrlKey && (e.key === "k" || e.key === "f")) {
         e.preventDefault();
@@ -2955,6 +2961,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Clean Formatting</span>
                   <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + Shift + F</kbd>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Export All Notes</span>
+                  <kbd className="px-1.5 py-0.5 bg-[var(--bg-color)] border border-[var(--border-color)] text-[var(--accent-color)] font-bold text-[10px]">Ctrl + Shift + E</kbd>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Toggle Theme Studio</span>
