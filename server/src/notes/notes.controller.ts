@@ -54,6 +54,11 @@ export class NotesController {
     return this.notesService.emptyTrash(req.user.id);
   }
 
+  @Get('export/backup')
+  async exportBackup(@Request() req: any) {
+    return this.notesService.exportBackup(req.user.id);
+  }
+
   @Get(':id')
   async getNote(@Param('id') id: string, @Request() req: any) {
     return this.notesService.findOne(id, req.user.id);
