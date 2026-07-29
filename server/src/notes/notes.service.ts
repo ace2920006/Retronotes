@@ -367,6 +367,43 @@ export class NotesService {
     });
   }
 
+  async exportBackup(userId: string) {
+    const notes = await this.prisma.note.findMany({
+      where: { userId, isTrashed: false },
+      include: {
+        folder: true,
+        tags: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    const folders = await this.prisma.folder.findMany({
+      where: { userId },
+    });
+
+    return {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      user: userId,
+      totalNotes: notes.length,
+      foldersCount: folders.length,
+      folders: folders.map(f => ({ id: f.id, name: f.name, color: f.color })),
+      notes: notes.map(n => ({
+        id: n.id,
+        title: n.title,
+        content: n.content,
+        color: n.color,
+        isPinned: n.isPinned,
+        isFavorite: n.isFavorite,
+        isArchived: n.isArchived,
+        folder: n.folder ? n.folder.name : null,
+        tags: n.tags ? n.tags.map(t => t.name) : [],
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+      })),
+    };
+  }
+
   /**
    * Private helper to process daily writing streak and unlock system achievement badges
    */
