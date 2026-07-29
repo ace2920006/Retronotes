@@ -982,6 +982,29 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     document.body.removeChild(element);
   };
 
+  const exportAllNotesAsJson = () => {
+    if (!notes || notes.length === 0) return;
+    playFloppySave();
+    const exportData = notes.map(n => ({
+      title: n.title,
+      content: n.content,
+      tags: n.tags ? n.tags.map(t => t.name) : [],
+      color: n.color || null,
+      isPinned: n.isPinned,
+      isFavorite: n.isFavorite,
+      createdAt: n.createdAt,
+      updatedAt: n.updatedAt,
+    }));
+    const fileContent = JSON.stringify(exportData, null, 2);
+    const element = document.createElement("a");
+    const file = new Blob([fileContent], { type: 'application/json' });
+    element.href = URL.createObjectURL(file);
+    element.download = `retronotes_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   const handleImportJsonFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1738,6 +1761,15 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                 </button>
               )}
             </div>
+
+            <button
+              onClick={exportAllNotesAsJson}
+              className="retro-button px-3 py-1.5 text-xs font-mono uppercase flex items-center gap-1.5 font-bold"
+              title="Export all notes to a JSON backup file"
+            >
+              <span>📦</span>
+              <span>EXPORT ALL</span>
+            </button>
 
             <button
               onClick={() => setActiveView(activeView === 'editor' ? 'dashboard' : 'editor')}
