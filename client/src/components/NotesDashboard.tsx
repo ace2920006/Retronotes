@@ -1521,6 +1521,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
     const defaultCommands = [
       { id: 'new-note', label: '📝 Create a new note', action: () => { createNewNote(); setShowCommandPalette(false); } },
+      { id: 'export-backup', label: '📦 Export All Notes (Backup)', action: () => { exportAllNotesAsJson(); setShowCommandPalette(false); } },
       { id: 'theme-switch', label: '🎨 Switch theme...', action: () => { setPaletteActiveView('theme'); setPaletteSelectedIndex(0); } },
       { id: 'go-favorites', label: '⭐ Go to My Bookmarks', action: () => { setActiveStatus('favorite'); setSelectedFolderId(null); setSelectedTag(null); setShowCommandPalette(false); } },
       { id: 'open-settings', label: '⚙️ Open Settings / Help', action: () => { setShowShortcutHelp(true); setShowCommandPalette(false); } },
