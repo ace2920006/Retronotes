@@ -62,6 +62,7 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 | `Ctrl + S` | **Save Note** | Force immediate save of active note |
 | `Ctrl + F` / `Ctrl + K` | **Search** | Open global search & command palette |
 | `Ctrl + Shift + F` | **Clean Format** | Clean up extra blank lines and spaces |
+| `Ctrl + Shift + E` | **Export Backup** | Export full notebook as JSON backup |
 | `Delete` | **Delete Note** | Move active note to Trash Can |
 | `Ctrl + P` | **Pin Note** | Toggle pinned status on active note |
 | `Ctrl + D` | **Duplicate Note** | Create a clone of the selected note |
