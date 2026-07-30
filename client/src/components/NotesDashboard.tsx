@@ -168,6 +168,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   // --- NEW STATES FOR ENHANCEMENTS ---
   const [editColor, setEditColor] = useState<string>("");
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [exportToast, setExportToast] = useState<string | null>(null);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'offline' | 'idle'>('idle');
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isSelectingNoteRef = useRef<boolean>(false);
@@ -987,6 +988,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     if (!notes || notes.length === 0) return;
     playFloppySave();
     setTimeout(() => playToggleBeep(), 180);
+    setExportToast("📦 BACKUP GENERATED (retronotes_backup.json)");
+    setTimeout(() => setExportToast(null), 3000);
     const exportData = notes.map(n => ({
       title: n.title,
       content: n.content,
@@ -2983,6 +2986,13 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast Notification Banner */}
+      {exportToast && (
+        <div className="fixed top-4 right-4 z-[9999] retro-border bg-[var(--panel-bg)] text-[var(--accent-color)] font-mono text-xs px-4 py-2 shadow-2xl flex items-center gap-2 select-none border-2 border-[var(--accent-color)] text-glow animate-pulse">
+          <span className="text-sm">💾</span>
+          <span className="font-bold tracking-wider">{exportToast}</span>
         </div>
       )}
     </div>
