@@ -944,6 +944,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
 
   const exportNote = (type: "txt" | "md" | "pdf" | "json") => {
     if (!selectedNote) return;
+    playFloppySave();
 
     const titleClean = selectedNote.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
@@ -985,6 +986,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
   const exportAllNotesAsJson = () => {
     if (!notes || notes.length === 0) return;
     playFloppySave();
+    setTimeout(() => playToggleBeep(), 180);
     const exportData = notes.map(n => ({
       title: n.title,
       content: n.content,
