@@ -321,7 +321,7 @@ export class NotesService {
       };
     }
 
-    return this.prisma.note.update({
+    const updatedNote = await this.prisma.note.update({
       where: { id },
       data: updateData,
       include: {
@@ -337,6 +337,12 @@ export class NotesService {
         },
       },
     });
+
+    if (content !== undefined || title !== undefined) {
+      await this.processUserStreakAndAchievements(userId);
+    }
+
+    return updatedNote;
   }
 
   async remove(id: string, userId: string) {
