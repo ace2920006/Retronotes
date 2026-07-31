@@ -959,6 +959,96 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const duplicateNote = async () => {
+    if (!selectedNote) return;
+    playFloppySave();
+    const tagNames = editTagsString.split(",").map(t => t.trim()).filter(Boolean);
+    const clonedPayload = {
+      title: `${editTitle || "Untitled Note"} (Copy)`,
+      content: editContent,
+      folderId: editFolderId === "" ? null : editFolderId,
+      tagNames,
+      color: editColor === "" ? null : editColor,
+      isPublished: editIsPublished,
+      collection: editCollection === "" ? null : editCollection,
+      mood: editMood === "" ? null : editMood,
+      summary: editSummary === "" ? null : editSummary,
+    };
+
+    try {
+      const saved = await fetchAPI("/notes", {
+        token,
+        method: "POST",
+        body: JSON.stringify(clonedPayload),
+      });
+      if (saved) {
+        selectNote(saved);
+        setNotes(prev => [saved, ...prev]);
+        setExportToast("👯 NOTE DUPLICATED");
+        setTimeout(() => setExportToast(null), 2500);
+      }
+    } catch (err) {
+      console.error("Duplicate note failed:", err);
+    }
+  };
+
+  const cleanFormatContent = () => {
+    if (!editContent) return;
+    playToggleBeep();
+    const cleaned = editContent
+      .split("\n")
+      .map(line => line.trimEnd())
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    setEditContent(cleaned);
+    setExportToast("🧹 CONTENT FORMATTED");
+    setTimeout(() => setExportToast(null), 2500);
+  };
+
+  const handleImportJsonFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    playFloppySave();
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      const notesToImport = Array.isArray(data) ? data : [data];
+      let importedCount = 0;
+
+      for (const item of notesToImport) {
+        if (item.title || item.content) {
+          const imported = await fetchAPI("/notes", {
+            token,
+            method: "POST",
+            body: JSON.stringify({
+              title: item.title || "Imported Note",
+              content: item.content || "",
+              tagNames: Array.isArray(item.tags) ? item.tags : [],
+              color: item.color || null,
+              isPinned: item.isPinned || false,
+              isFavorite: item.isFavorite || false,
+            }),
+          });
+          if (imported) {
+            setNotes(prev => [imported, ...prev]);
+            importedCount++;
+          }
+        }
+      }
+
+      setExportToast(`📥 IMPORTED ${importedCount} NOTE(S)`);
+      setTimeout(() => setExportToast(null), 3000);
+    } catch (err) {
+      console.error("Failed to import JSON file:", err);
+      setExportToast("❌ IMPORT FAILED (INVALID JSON)");
+      setTimeout(() => setExportToast(null), 3000);
+    }
+    e.target.value = "";
+  };
+
   const exportNote = (type: "txt" | "md" | "pdf" | "json") => {
     if (!selectedNote) return;
     playFloppySave();
@@ -1023,104 +1113,6 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     element.download = `retronotes_backup_${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(element);
     element.click();
-    document.body.removeChild(element);
-  };
-
-  const handleImportJsonFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const text = event.target?.result as string;
-        const parsed = JSON.parse(text);
-        const notesToImport = Array.isArray(parsed) ? parsed : [parsed];
-
-        for (const item of notesToImport) {
-          if (!item.title && !item.content) continue;
-          const payload = {
-            title: item.title || "Imported Note",
-            content: item.content || "",
-            tagNames: Array.isArray(item.tags) ? item.tags : (item.tags ? [item.tags] : []),
-            folderId: item.folderId || null,
-            color: item.color || null,
-          };
-          if (!isOffline) {
-            await fetchAPI("/notes", { token, method: "POST", body: JSON.stringify(payload) });
-          }
-        }
-        playFloppySave();
-        loadData();
-      } catch (err) {
-        console.error("Failed to import notes.json:", err);
-        alert("Invalid notes.json file format.");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  // --- ENHANCEMENTS AND HELPERS ---
-  const duplicateNote = async () => {
-    if (!selectedNote || selectedNote.id === "new-note-temp") return;
-    playFloppySave();
-    try {
-      const dupTitle = `Copy of ${selectedNote.title}`;
-      const dupContent = selectedNote.content;
-      const dupFolderId = selectedNote.folderId || undefined;
-      const dupTags = selectedNote.tags ? selectedNote.tags.map(t => t.name) : [];
-      const dupColor = editColor;
-
-      if (isOffline) {
-        const offlineNote: Note = {
-          id: "offline-" + Math.random().toString(36).substr(2, 9),
-          title: dupTitle,
-          content: dupContent,
-          isPinned: false,
-          isArchived: false,
-          isTrashed: false,
-          isFavorite: false,
-          color: dupColor || null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          folderId: dupFolderId || null,
-          tags: dupTags.map((name, i) => ({ id: `offline-tag-${i}`, name })),
-        };
-        const nextNotes = [offlineNote, ...notes];
-        setNotes(nextNotes);
-        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
-        setSelectedNote(offlineNote);
-      } else {
-        const saved = await fetchAPI("/notes", {
-          token,
-          method: "POST",
-          body: JSON.stringify({
-            title: dupTitle,
-            content: dupContent,
-            folderId: dupFolderId,
-            tagNames: dupTags,
-            color: dupColor,
-          }),
-        });
-        if (saved) {
-          setNotes(prev => [saved, ...prev]);
-          localStorage.setItem("retronotes-cache-notes", JSON.stringify([saved, ...notes]));
-          selectNote(saved);
-        }
-      }
-    } catch (e) {
-      console.error("Duplicate failed:", e);
-    }
-  };
-
-  const cleanFormatContent = () => {
-    if (!editContent) return;
-    playToggleBeep();
-    let cleaned = editContent.replace(/\r\n/g, "\n");
-    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
-    cleaned = cleaned.split("\n").map(line => line.trimEnd()).join("\n");
-    cleaned = cleaned.trim();
-    setEditContent(cleaned);
   };
 
   // --- KEYBOARD SHORTCUTS ---
