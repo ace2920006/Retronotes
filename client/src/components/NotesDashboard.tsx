@@ -708,6 +708,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       folderId: editFolderId === "" ? null : editFolderId,
       tagNames,
       color: editColor === "" ? null : editColor,
+      isPublished: editIsPublished,
+      collection: editCollection === "" ? null : editCollection,
+      mood: editMood === "" ? null : editMood,
+      summary: editSummary === "" ? null : editSummary,
     };
 
     try {
@@ -721,6 +725,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             isArchived: false,
             isTrashed: false,
             isFavorite: false,
+            isPublished: editIsPublished,
+            collection: editCollection || null,
+            mood: editMood || null,
+            summary: editSummary || null,
             color: editColor || null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -754,6 +762,10 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
           folderId: editFolderId === "" ? null : editFolderId,
           tags: tagNames.map((name, i) => ({ id: `tag-${i}`, name })),
           color: editColor || null,
+          isPublished: editIsPublished,
+          collection: editCollection || null,
+          mood: editMood || null,
+          summary: editSummary || null,
           updatedAt: new Date().toISOString(),
         };
 
@@ -796,7 +808,11 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
       editContent !== selectedNote.content ||
       (editFolderId || "") !== (selectedNote.folderId || "") ||
       editTagsString !== currentTags ||
-      (editColor || "") !== (selectedNote.color || "");
+      (editColor || "") !== (selectedNote.color || "") ||
+      editIsPublished !== (selectedNote.isPublished !== false) ||
+      (editCollection || "") !== (selectedNote.collection || "") ||
+      (editMood || "") !== (selectedNote.mood || "") ||
+      (editSummary || "") !== (selectedNote.summary || "");
 
     if (!hasChanges) return;
 
@@ -815,7 +831,7 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [editTitle, editContent, editFolderId, editTagsString, editColor, selectedNote, isBooting]);
+  }, [editTitle, editContent, editFolderId, editTagsString, editColor, editIsPublished, editCollection, editMood, editSummary, selectedNote, isBooting]);
 
   // Save changes explicitly (Button / Ctrl+S)
   const saveNote = async () => {
