@@ -305,11 +305,7 @@ export class NotesService {
 
     // Handle Folder update
     if (folderId !== undefined) {
-      if (folderId === null || folderId === '') {
-        updateData.folder = { disconnect: true };
-      } else {
-        updateData.folder = { connect: { id: folderId } };
-      }
+      updateData.folderId = folderId || null;
     }
 
     // Handle Tags update
