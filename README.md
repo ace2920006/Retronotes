@@ -34,7 +34,8 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 - ✏️ **Edit Notes**: Real-time debounced auto-saving, syntax highlighting, list formatting, and inline status indicator.
 - 🗑️ **Delete Notes**: Soft-delete notes to a dedicated Trash Can with single-click restoration or permanent purge.
 - 📁 **Folder Directories**: Organize notes into custom directories with custom color badges.
-- 🧹 **Clean Formatting**: One-click paragraph & whitespace cleanup utility that normalizes extra blank lines and removes trailing spaces.
+- 👯 **Duplicate Notes**: Instantly clone active notes along with tags, color, and metadata (`Ctrl+D` / `CLONE`).
+- 🧹 **Clean Formatting**: One-click paragraph & whitespace cleanup utility that normalizes extra blank lines and removes trailing spaces (`Ctrl+Shift+F`).
 - 🔍 **Search & AI Search**: Instant keyword search, tag filtering, and natural language Gemini AI search.
 
 ---
