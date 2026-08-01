@@ -36,7 +36,7 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 - 📁 **Folder Directories**: Organize notes into custom directories with custom color badges.
 - 👯 **Duplicate Notes**: Instantly clone active notes along with tags, color, and metadata (`Ctrl+D` / `CLONE`).
 - 🧹 **Clean Formatting**: One-click paragraph & whitespace cleanup utility that normalizes extra blank lines and removes trailing spaces (`Ctrl+Shift+F`).
-- 🔍 **Search & AI Search**: Instant keyword search, tag filtering, and natural language Gemini AI search.
+- 🔍 **Search & Semantic AI Search**: Instant keyword search, tag filtering, and natural language Gemini AI semantic search (`?query`).
 
 ---
 
