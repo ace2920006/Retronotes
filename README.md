@@ -222,6 +222,7 @@ Open [http://localhost:3001](http://localhost:3001) in your browser.
 - [x] 📝 Dual-pane Markdown editor & preview
 - [x] 📤 Export to TXT, MD, JSON, and PDF
 - [x] 📥 Import `notes.json` files
+- [x] 👯 Duplicate Notes & One-click text formatting cleanup (`Ctrl+D` / `Ctrl+Shift+F`)
 - [x] ⌨️ Keyboard Shortcuts (`Ctrl+N`, `Ctrl+S`, `Ctrl+F`, `Delete`)
 - [x] 📊 Live Dashboard stats (Total Notes, Pinned, Favorites, Storage Used)
 - [x] 🎮 Retro Touches (BIOS boot animation, sound effects, CRT flicker toggle)
