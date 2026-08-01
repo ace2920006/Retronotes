@@ -1113,6 +1113,104 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     element.download = `retronotes_backup_${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(element);
     element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleImportJsonFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const parsed = JSON.parse(text);
+        const notesToImport = Array.isArray(parsed) ? parsed : [parsed];
+
+        for (const item of notesToImport) {
+          if (!item.title && !item.content) continue;
+          const payload = {
+            title: item.title || "Imported Note",
+            content: item.content || "",
+            tagNames: Array.isArray(item.tags) ? item.tags : (item.tags ? [item.tags] : []),
+            folderId: item.folderId || null,
+            color: item.color || null,
+          };
+          if (!isOffline) {
+            await fetchAPI("/notes", { token, method: "POST", body: JSON.stringify(payload) });
+          }
+        }
+        playFloppySave();
+        loadData();
+      } catch (err) {
+        console.error("Failed to import notes.json:", err);
+        alert("Invalid notes.json file format.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // --- ENHANCEMENTS AND HELPERS ---
+  const duplicateNote = async () => {
+    if (!selectedNote || selectedNote.id === "new-note-temp") return;
+    playFloppySave();
+    try {
+      const dupTitle = `Copy of ${selectedNote.title}`;
+      const dupContent = selectedNote.content;
+      const dupFolderId = selectedNote.folderId || undefined;
+      const dupTags = selectedNote.tags ? selectedNote.tags.map(t => t.name) : [];
+      const dupColor = editColor;
+
+      if (isOffline) {
+        const offlineNote: Note = {
+          id: "offline-" + Math.random().toString(36).substr(2, 9),
+          title: dupTitle,
+          content: dupContent,
+          isPinned: false,
+          isArchived: false,
+          isTrashed: false,
+          isFavorite: false,
+          color: dupColor || null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          folderId: dupFolderId || null,
+          tags: dupTags.map((name, i) => ({ id: `offline-tag-${i}`, name })),
+        };
+        const nextNotes = [offlineNote, ...notes];
+        setNotes(nextNotes);
+        localStorage.setItem("retronotes-cache-notes", JSON.stringify(nextNotes));
+        setSelectedNote(offlineNote);
+      } else {
+        const saved = await fetchAPI("/notes", {
+          token,
+          method: "POST",
+          body: JSON.stringify({
+            title: dupTitle,
+            content: dupContent,
+            folderId: dupFolderId,
+            tagNames: dupTags,
+            color: dupColor,
+          }),
+        });
+        if (saved) {
+          setNotes(prev => [saved, ...prev]);
+          localStorage.setItem("retronotes-cache-notes", JSON.stringify([saved, ...notes]));
+          selectNote(saved);
+        }
+      }
+    } catch (e) {
+      console.error("Duplicate failed:", e);
+    }
+  };
+
+  const cleanFormatContent = () => {
+    if (!editContent) return;
+    playToggleBeep();
+    let cleaned = editContent.replace(/\r\n/g, "\n");
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+    cleaned = cleaned.split("\n").map(line => line.trimEnd()).join("\n");
+    cleaned = cleaned.trim();
+    setEditContent(cleaned);
   };
 
   // --- KEYBOARD SHORTCUTS ---
@@ -1821,8 +1919,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
             <button
               onClick={toggleCrt}
               className={`retro-button px-2.5 py-1.5 text-xs font-mono flex items-center gap-1.5 transition-all ${crtEnabled
-                  ? 'bg-[var(--border-color)] text-[var(--fg-color)] border-[var(--accent-color)] shadow-[0_0_8px_var(--border-color)]'
-                  : 'opacity-70 hover:opacity-100'
+                ? 'bg-[var(--border-color)] text-[var(--fg-color)] border-[var(--accent-color)] shadow-[0_0_8px_var(--border-color)]'
+                : 'opacity-70 hover:opacity-100'
                 }`}
               title="Toggle retro CRT scanlines and monitor phosphor glow (CRT Overlay)"
             >
@@ -1830,8 +1928,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
               <span className="font-bold">CRT SCANLINES:</span>
               <span
                 className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-none border ${crtEnabled
-                    ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] shadow-[0_0_6px_var(--accent-color)]'
-                    : 'bg-red-950/80 text-red-400 border-red-800'
+                  ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] shadow-[0_0_6px_var(--accent-color)]'
+                  : 'bg-red-950/80 text-red-400 border-red-800'
                   }`}
               >
                 {crtEnabled ? 'ACTIVE' : 'MUTED'}
@@ -2002,8 +2100,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setSelectedTag(null);
                       }}
                       className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[var(--bg-color)] flex justify-between items-center transition-colors ${activeStatus === filter.key && !selectedFolderId && !selectedTag
-                          ? 'border border-[var(--border-color)] bg-[var(--bg-color)] font-bold text-glow'
-                          : ''
+                        ? 'border border-[var(--border-color)] bg-[var(--bg-color)] font-bold text-glow'
+                        : ''
                         }`}
                     >
                       <span>{filter.label}</span>
@@ -2035,8 +2133,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setActiveStatus("all");
                       }}
                       className={`w-full text-left px-2.5 py-1 text-xs hover:bg-[var(--bg-color)] flex items-center gap-2 truncate ${selectedFolderId === f.id
-                          ? 'border border-[var(--border-color)] bg-[var(--bg-color)] font-bold text-glow'
-                          : ''
+                        ? 'border border-[var(--border-color)] bg-[var(--bg-color)] font-bold text-glow'
+                        : ''
                         }`}
                     >
                       <span className="w-2 h-2 shrink-0" style={{ backgroundColor: f.color || 'gray' }}></span>
@@ -2115,8 +2213,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                         setSelectedTag(null);
                       }}
                       className={`px-2 py-0.5 font-mono whitespace-nowrap transition-all uppercase flex items-center gap-1 border ${isActive
-                          ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] font-bold shadow-[0_0_6px_var(--accent-color)]'
-                          : 'bg-[var(--bg-color)] text-gray-400 border-[var(--border-color)]/40 hover:text-[var(--fg-color)] hover:border-[var(--border-color)]'
+                        ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)] font-bold shadow-[0_0_6px_var(--accent-color)]'
+                        : 'bg-[var(--bg-color)] text-gray-400 border-[var(--border-color)]/40 hover:text-[var(--fg-color)] hover:border-[var(--border-color)]'
                         }`}
                     >
                       <span>{f.icon}</span>
@@ -2682,8 +2780,8 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
                     <div
                       key={i}
                       className={`p-3 border ${msg.role === 'user'
-                          ? 'border-[var(--border-color)]/40 bg-[var(--bg-color)]/60 text-right ml-6'
-                          : 'border-green-800 bg-[var(--bg-color)]/20 mr-6'
+                        ? 'border-[var(--border-color)]/40 bg-[var(--bg-color)]/60 text-right ml-6'
+                        : 'border-green-800 bg-[var(--bg-color)]/20 mr-6'
                         }`}
                     >
                       <p className="text-[9px] text-gray-500 uppercase mb-1 font-bold">
