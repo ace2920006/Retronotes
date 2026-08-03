@@ -435,6 +435,13 @@ export default function NotesDashboard({ token, user }: NotesDashboardProps) {
     const nextCrt = !crtEnabled;
     setCrtEnabled(nextCrt);
     localStorage.setItem("retronotes-crt", String(nextCrt));
+    
+    // Trigger CRT power turn-on / turn-off flash effect
+    document.documentElement.classList.add("crt-theme-flash");
+    setTimeout(() => {
+      document.documentElement.classList.remove("crt-theme-flash");
+    }, 400);
+
     if (nextCrt) {
       document.documentElement.classList.add("crt-effect", "crt-flicker");
     } else {
