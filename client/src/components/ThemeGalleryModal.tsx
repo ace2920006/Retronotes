@@ -188,95 +188,177 @@ export const ThemeGalleryModal: React.FC<ThemeGalleryModalProps> = ({
           </div>
 
           {/* Theme Gallery Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredThemes.map((theme: ThemeDef) => {
               const isSelected = currentThemeId === theme.id;
               return (
                 <div
                   key={theme.id}
                   onClick={() => handleThemePick(theme.id)}
-                  className={`group relative border-2 p-3.5 cursor-pointer transition-all duration-150 flex flex-col justify-between ${
+                  className={`group relative border-2 p-3.5 cursor-pointer transition-all duration-200 flex flex-col justify-between crt-glitch-hover transform hover:-translate-y-0.5 ${
                     isSelected
-                      ? "border-[var(--accent-color)] bg-[var(--bg-color)] shadow-[0_0_12px_rgba(255,255,255,0.15)] ring-1 ring-[var(--accent-color)]"
-                      : "border-[var(--border-color)] bg-[var(--panel-bg)] hover:border-[var(--fg-color)] hover:bg-[var(--bg-color)]/60"
+                      ? "ring-2 ring-offset-2 ring-offset-black scale-[1.02]"
+                      : "opacity-90 hover:opacity-100"
                   }`}
                   style={{
-                    backgroundColor: isSelected ? theme.bg : undefined,
+                    backgroundColor: theme.panelBg,
+                    borderColor: isSelected ? theme.accent : theme.borderColor,
+                    boxShadow: isSelected
+                      ? `0 0 18px ${theme.accent}66, inset 0 0 12px ${theme.accent}22`
+                      : `0 2px 6px rgba(0,0,0,0.4)`,
                   }}
                 >
                   <div>
-                    {/* Top Row: Emoji, Title & Badge */}
-                    <div className="flex items-start justify-between gap-2 mb-2">
+                    {/* Top Header Row: Emoji, Title & Equipped Badge */}
+                    <div className="flex items-start justify-between gap-2 mb-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-xl leading-none">{theme.emoji}</span>
+                        <span className="text-2xl leading-none transition-transform group-hover:scale-110">
+                          {theme.emoji}
+                        </span>
                         <div>
                           <h3
-                            className="font-bold text-xs md:text-sm font-mono tracking-tight"
+                            className="font-bold text-xs md:text-sm font-mono tracking-tight flex items-center gap-1.5"
                             style={{ color: theme.fg }}
                           >
                             {theme.name}
                           </h3>
-                          <span className="text-[10px] opacity-60 font-mono block">
+                          <span
+                            className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded-none inline-block border"
+                            style={{
+                              backgroundColor: `${theme.bg}bb`,
+                              color: theme.accent,
+                              borderColor: `${theme.borderColor}88`,
+                            }}
+                          >
                             {theme.category}
                           </span>
                         </div>
                       </div>
+
                       {isSelected ? (
-                        <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-green-600 text-white rounded-none border border-green-400 animate-pulse">
-                          EQUIPPED
+                        <span
+                          className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-none border crt-glow-pulse flex items-center gap-1"
+                          style={{
+                            backgroundColor: theme.accent,
+                            color: theme.bg,
+                            borderColor: theme.fg,
+                          }}
+                        >
+                          <span>⚡</span> ACTIVE
                         </span>
                       ) : (
-                        <span className="opacity-0 group-hover:opacity-100 text-[10px] font-mono uppercase text-gray-400">
+                        <span
+                          className="opacity-0 group-hover:opacity-100 text-[10px] font-mono uppercase px-2 py-0.5 border transition-opacity"
+                          style={{
+                            color: theme.accent,
+                            borderColor: `${theme.accent}66`,
+                          }}
+                        >
                           [EQUIP]
                         </span>
                       )}
                     </div>
 
-                    {/* Theme Palette Swatches Bar */}
-                    <div className="flex items-center gap-1.5 my-2.5 p-1.5 bg-black/40 border border-white/10 rounded-none">
+                    {/* Live Terminal Sandbox Preview Card */}
+                    <div
+                      className="my-2.5 p-2.5 border-2 rounded-none relative overflow-hidden font-mono text-[11px]"
+                      style={{
+                        backgroundColor: theme.bg,
+                        borderColor: theme.borderColor,
+                        color: theme.fg,
+                      }}
+                    >
+                      {/* Mini Scanline Lines Background */}
                       <div
-                        className="w-5 h-5 rounded-none border border-white/30"
-                        style={{ backgroundColor: theme.bg }}
+                        className="absolute inset-0 pointer-events-none opacity-20"
+                        style={{
+                          backgroundImage: `linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.5) 50%)`,
+                          backgroundSize: "100% 3px",
+                        }}
+                      />
+
+                      {/* Mini Terminal Bar */}
+                      <div
+                        className="flex items-center justify-between border-b pb-1 mb-1.5 text-[9px] opacity-75 font-bold uppercase"
+                        style={{ borderColor: `${theme.borderColor}88` }}
+                      >
+                        <span style={{ color: theme.accent }}>
+                          &gt; SYS_NOTE_{theme.id.toUpperCase()}.TXT
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: theme.accent }} />
+                      </div>
+
+                      {/* Mini Code/Note Text */}
+                      <div className="space-y-0.5 leading-tight text-[10px]">
+                        <div style={{ color: theme.accent }} className="font-bold">
+                          # {theme.name} Display
+                        </div>
+                        <div className="opacity-90 line-clamp-1">
+                          Terminal notes & AI assistant ready.
+                        </div>
+                        <div className="flex items-center gap-1 pt-0.5" style={{ color: theme.fg }}>
+                          <span>status: OK</span>
+                          <span className="animate-pulse">_</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Theme Color Palette Swatches */}
+                    <div
+                      className="flex items-center gap-1.5 my-2 p-1.5 border rounded-none text-[9px] font-mono"
+                      style={{
+                        backgroundColor: `${theme.bg}aa`,
+                        borderColor: `${theme.borderColor}66`,
+                      }}
+                    >
+                      <div
+                        className="w-4 h-4 border shadow-xs"
+                        style={{ backgroundColor: theme.bg, borderColor: `${theme.fg}44` }}
                         title={`Background: ${theme.bg}`}
                       />
                       <div
-                        className="w-5 h-5 rounded-none border border-white/30"
-                        style={{ backgroundColor: theme.panelBg }}
+                        className="w-4 h-4 border shadow-xs"
+                        style={{ backgroundColor: theme.panelBg, borderColor: `${theme.fg}44` }}
                         title={`Panel: ${theme.panelBg}`}
                       />
                       <div
-                        className="w-5 h-5 rounded-none border border-white/30"
-                        style={{ backgroundColor: theme.fg }}
-                        title={`Text: ${theme.fg}`}
+                        className="w-4 h-4 border shadow-xs"
+                        style={{ backgroundColor: theme.fg, borderColor: `${theme.fg}44` }}
+                        title={`Text Color: ${theme.fg}`}
                       />
                       <div
-                        className="w-5 h-5 rounded-none border border-white/30"
-                        style={{ backgroundColor: theme.accent }}
+                        className="w-4 h-4 border shadow-xs"
+                        style={{ backgroundColor: theme.accent, borderColor: `${theme.fg}44` }}
                         title={`Accent: ${theme.accent}`}
                       />
                       <div
-                        className="w-5 h-5 rounded-none border border-white/30"
-                        style={{ backgroundColor: theme.borderColor }}
+                        className="w-4 h-4 border shadow-xs"
+                        style={{ backgroundColor: theme.borderColor, borderColor: `${theme.fg}44` }}
                         title={`Border: ${theme.borderColor}`}
                       />
                       <span
-                        className="ml-auto text-[10px] font-mono font-bold"
-                        style={{ color: theme.fg }}
+                        className="ml-auto font-bold uppercase tracking-wider"
+                        style={{ color: theme.accent }}
                       >
-                        ABC 123
+                        PALETTE
                       </span>
                     </div>
 
                     {/* Description */}
-                    <p className="text-[11px] opacity-75 font-mono line-clamp-2 leading-tight">
+                    <p className="text-[11px] opacity-80 font-mono line-clamp-2 leading-tight">
                       {theme.description}
                     </p>
                   </div>
 
-                  {/* Footer Tag */}
-                  <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono opacity-60">
+                  {/* Card Footer Info */}
+                  <div
+                    className="mt-3 pt-2 border-t flex items-center justify-between text-[10px] font-mono opacity-70"
+                    style={{ borderColor: `${theme.borderColor}66` }}
+                  >
                     <span>Scanlines: {Math.round(theme.scanlineOpacity * 100)}%</span>
-                    <span>Font: {theme.fontTitle || "Default"}</span>
+                    <span style={{ color: theme.accent }}>
+                      {theme.fontTitle || "Default"}
+                    </span>
                   </div>
                 </div>
               );
