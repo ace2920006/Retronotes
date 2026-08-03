@@ -249,6 +249,24 @@ h1, h2, h3, h4, h5, h6, .retro-title {
   overflow: hidden;
 }
 
+/* CRT Screen Curvature Vignette Glass Overlay */
+.crt-effect::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.45) 85%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  z-index: 9998;
+  pointer-events: none;
+  opacity: calc(var(--crt-scanline-opacity, 0.15) * 1.5);
+}
+
+/* CRT Scanline Horizontal Micro-Grid Overlay */
 .crt-effect::after {
   content: " ";
   display: block;
@@ -256,48 +274,113 @@ h1, h2, h3, h4, h5, h6, .retro-title {
   top: 0; left: 0; bottom: 0; right: 0;
   background: linear-gradient(
     rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.3) 50%
+    rgba(0, 0, 0, 0.35) 50%
   );
   background-size: 100% 4px;
   z-index: 9999;
   pointer-events: none;
   opacity: calc(var(--crt-scanline-opacity, 0.15) * var(--user-scanline-multiplier, 1));
+  animation: crt-scanline-roll 10s linear infinite;
 }
 
-/* Flicker Animation for Phosphor Simulation */
+/* Rolling Electron Beam Refresh Sweep */
+@keyframes crt-scanline-roll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+/* Flicker Animation for Authentic CRT Phosphor Simulation */
 @keyframes crt-flicker {
-  0% { opacity: 0.985; }
-  50% { opacity: 1; }
-  100% { opacity: 0.99; }
+  0% { opacity: 0.975; filter: contrast(1) brightness(1); }
+  15% { opacity: 1; filter: contrast(1.02) brightness(1.03); }
+  30% { opacity: 0.98; filter: contrast(0.99) brightness(0.99); }
+  45% { opacity: 0.995; filter: contrast(1.01) brightness(1.01); }
+  60% { opacity: 0.97; filter: contrast(0.98) brightness(0.98); }
+  75% { opacity: 1; filter: contrast(1.03) brightness(1.02); }
+  90% { opacity: 0.985; filter: contrast(1) brightness(1); }
+  100% { opacity: 0.99; filter: contrast(1.01) brightness(1.01); }
 }
 
 .crt-flicker,
 .crt-flicker-active {
-  animation: crt-flicker var(--crt-flicker, 0.15s) infinite;
+  animation: crt-flicker var(--crt-flicker, 0.18s) infinite;
 }
 
-/* CRT Theme Switch Power-Flash Glitch Animation */
+/* CRT Theme Switch Power-Flash & Turn-On Warp Animation */
 @keyframes crt-power-flash {
   0% {
-    filter: brightness(2.8) contrast(1.8) saturate(1.8);
-    opacity: 0.8;
-  }
-  25% {
-    filter: brightness(0.2) contrast(1.5);
+    filter: brightness(3.5) contrast(2.5) saturate(2.5);
+    transform: scaleY(0.005) scaleX(1.1);
     opacity: 0.9;
   }
-  50% {
-    filter: brightness(1.6) contrast(1.2);
+  20% {
+    filter: brightness(0.1) contrast(2);
+    transform: scaleY(0.4) scaleX(0.98);
     opacity: 0.95;
+  }
+  45% {
+    filter: brightness(1.8) contrast(1.4);
+    transform: scaleY(1.03) scaleX(1.01);
+    opacity: 0.98;
+  }
+  70% {
+    filter: brightness(0.85) contrast(1.1);
+    transform: scaleY(0.99) scaleX(1);
+    opacity: 1;
   }
   100% {
     filter: brightness(1) contrast(1);
+    transform: scaleY(1) scaleX(1);
     opacity: 1;
   }
 }
 
 .crt-theme-flash {
-  animation: crt-power-flash 0.35s ease-out;
+  animation: crt-power-flash 0.4s ease-out;
+}
+
+/* CRT Micro Glitch RGB Split Shift on Hover & Active Focus */
+@keyframes crt-glitch-shift {
+  0% {
+    text-shadow: -1.5px 0 rgba(255, 0, 0, 0.7), 1.5px 0 rgba(0, 255, 255, 0.7);
+    transform: translate(0.5px, 0);
+  }
+  20% {
+    text-shadow: 1.5px 0 rgba(255, 0, 0, 0.7), -1.5px 0 rgba(0, 255, 255, 0.7);
+    transform: translate(-0.5px, 0);
+  }
+  40% {
+    text-shadow: -1px 0 rgba(255, 255, 0, 0.6), 1px 0 rgba(0, 0, 255, 0.6);
+    transform: translate(0, 0.5px);
+  }
+  60% {
+    text-shadow: var(--fg-glow);
+    transform: translate(0, 0);
+  }
+  100% {
+    text-shadow: var(--fg-glow);
+    transform: translate(0, 0);
+  }
+}
+
+.crt-glitch-hover:hover {
+  animation: crt-glitch-shift 0.25s ease-in-out;
+}
+
+/* Dynamic Phosphor Bloom Pulsing Glow */
+@keyframes phosphor-bloom {
+  0%, 100% {
+    text-shadow: var(--fg-glow);
+    filter: drop-shadow(0 0 2px var(--fg-color));
+  }
+  50% {
+    text-shadow: 0 0 12px var(--fg-color), 0 0 20px var(--fg-color);
+    filter: drop-shadow(0 0 6px var(--accent-color));
+  }
+}
+
+.crt-glow-pulse {
+  animation: phosphor-bloom 3s ease-in-out infinite;
 }
 
 /* Retro Borders & Boxes */
