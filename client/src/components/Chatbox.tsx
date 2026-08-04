@@ -217,8 +217,8 @@ export default function Chatbox() {
       {isOpen && (
         <div className="mb-4 w-[340px] sm:w-[380px] h-[480px] bg-[var(--panel-bg)]/95 border-2 border-[var(--border-color)] shadow-2xl flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-5 font-mono screen-glare">
           {/* Header */}
-          <div className="px-4 py-3 bg-[var(--bg-color)] border-b-2 border-[var(--border-color)] flex justify-between items-center text-glow">
-            <div className="flex items-center gap-2 select-none">
+          <div className="px-4 py-3 bg-[var(--bg-color)] border-b-2 border-[var(--border-color)] flex justify-between items-center text-glow select-none">
+            <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-color)] animate-pulse" />
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--fg-color)]">
@@ -227,15 +227,29 @@ export default function Chatbox() {
                 <p className="text-[9px] text-[var(--fg-color)]/60 uppercase">RETRO-MUSE SUB-SYSTEM</p>
               </div>
             </div>
-            <button
-              onClick={() => {
-                playToggleBeep();
-                setIsOpen(false);
-              }}
-              className="text-[var(--fg-color)]/70 hover:text-[var(--fg-color)] border border-[var(--border-color)] px-1.5 py-0.5 text-[9px] font-bold cursor-pointer"
-            >
-              [ESC] CLOSE
-            </button>
+            <div className="flex items-center gap-1.5">
+              {messages.length > 1 && (
+                <button
+                  onClick={() => {
+                    playToggleBeep();
+                    setMessages([messages[0]]);
+                  }}
+                  title="Clear Conversation History"
+                  className="text-[var(--fg-color)]/70 hover:text-[var(--fg-color)] border border-[var(--border-color)] hover:border-[var(--accent-color)] px-1.5 py-0.5 text-[9px] font-bold cursor-pointer transition-colors"
+                >
+                  [CLR]
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  playToggleBeep();
+                  setIsOpen(false);
+                }}
+                className="text-[var(--fg-color)]/70 hover:text-[var(--fg-color)] border border-[var(--border-color)] hover:border-[var(--accent-color)] px-1.5 py-0.5 text-[9px] font-bold cursor-pointer transition-colors"
+              >
+                [ESC] CLOSE
+              </button>
+            </div>
           </div>
 
           {/* Messages Container */}
@@ -335,20 +349,27 @@ export default function Chatbox() {
       )}
 
       {/* Floating Toggle Button */}
-      <button
-        onClick={() => {
-          playToggleBeep();
-          setIsOpen(!isOpen);
-        }}
-        className="w-12 h-12 bg-[var(--bg-color)] hover:bg-[var(--panel-bg)] text-[var(--fg-color)] rounded-none flex items-center justify-center shadow-xl border-2 border-[var(--border-color)] transition-all cursor-pointer group text-glow"
-        title="Toggle AI Co-Processor Console"
-      >
-        {isOpen ? (
-          <span className="font-mono font-bold text-xs uppercase">[X]</span>
-        ) : (
-          <span className="text-lg group-hover:scale-110 transition-transform">📟</span>
+      <div className="flex items-center gap-2">
+        {!isOpen && (
+          <span className="hidden sm:inline-block text-[10px] font-mono uppercase bg-[var(--bg-color)] text-[var(--fg-color)] border border-[var(--border-color)] px-2 py-1 shadow-md text-glow animate-pulse">
+            AI CO-PROCESSOR
+          </span>
         )}
-      </button>
+        <button
+          onClick={() => {
+            playToggleBeep();
+            setIsOpen(!isOpen);
+          }}
+          className="w-12 h-12 bg-[var(--bg-color)] hover:bg-[var(--panel-bg)] text-[var(--fg-color)] rounded-none flex items-center justify-center shadow-xl border-2 border-[var(--border-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer group text-glow"
+          title="Toggle AI Co-Processor Console"
+        >
+          {isOpen ? (
+            <span className="font-mono font-bold text-xs uppercase">[X]</span>
+          ) : (
+            <span className="text-lg group-hover:scale-110 transition-transform">📟</span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
