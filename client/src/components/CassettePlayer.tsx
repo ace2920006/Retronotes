@@ -180,6 +180,16 @@ export default function CassettePlayer() {
               <span className="tracking-widest font-mono text-glow">
                 {formatCounter(tapeCounter)}
               </span>
+              <button
+                onClick={() => {
+                  playToggleBeep();
+                  setTapeCounter(0);
+                }}
+                title="Reset Tape Counter"
+                className="ml-1 text-[7px] text-[var(--fg-color)]/60 hover:text-[var(--fg-color)] border border-[var(--border-color)]/50 hover:border-[var(--accent-color)] px-1 py-0.2 cursor-pointer uppercase transition-colors"
+              >
+                RST
+              </button>
             </div>
 
             {/* Status indicator */}
@@ -275,7 +285,21 @@ export default function CassettePlayer() {
 
       {/* Volume slider */}
       <div className="flex items-center gap-2 select-none text-[9px]">
-        <span className="font-bold opacity-80">VOL:</span>
+        <button
+          onClick={() => {
+            playToggleBeep();
+            if (volume > 0) {
+              setPrevVolume(volume);
+              setVolume(0);
+            } else {
+              setVolume(prevVolume || 0.5);
+            }
+          }}
+          title={volume === 0 ? "Unmute Audio" : "Mute Audio"}
+          className="font-bold opacity-80 hover:opacity-100 border border-[var(--border-color)]/50 hover:border-[var(--accent-color)] px-1 py-0.5 text-[8px] cursor-pointer font-mono"
+        >
+          {volume === 0 ? "🔇 MUTE" : "🔊 VOL"}
+        </button>
         <input
           type="range"
           min="0"
