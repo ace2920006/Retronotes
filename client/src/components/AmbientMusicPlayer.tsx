@@ -72,31 +72,30 @@ export default function AmbientMusicPlayer({ songUrl }: AmbientMusicPlayerProps)
   const player = getPlayerDetails(songUrl);
 
   return (
-    <div className="w-full my-4 border border-gray-800/60 bg-gray-900/20 backdrop-blur-sm rounded-xl overflow-hidden transition-all duration-300">
+    <div className="w-full my-4 border-2 border-[var(--border-color)] bg-[var(--bg-color)] font-mono text-xs overflow-hidden transition-all duration-300 shadow-md screen-glare">
       {/* Header bar / Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between py-2.5 px-4 text-xs font-light text-gray-400 hover:text-white transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between py-2.5 px-4 text-xs font-bold text-[var(--fg-color)] hover:bg-[var(--panel-bg)] transition-colors cursor-pointer select-none text-glow"
       >
         <span className="flex items-center gap-2">
-          <span className={`inline-block text-sm animate-pulse`}>🎧</span>
-          <span>Ambient background theme attached</span>
+          <span className="inline-block text-sm animate-pulse">🎧</span>
+          <span className="uppercase tracking-wider">AMBIENT AUDIO TRACK ATTACHED</span>
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-gray-550 border border-gray-850 px-2 py-0.5 rounded-full hover:bg-gray-800/40 transition-colors uppercase tracking-wider">
-          {isOpen ? "Hide Player" : "Load Track"} {isOpen ? "▲" : "▼"}
+        <span className="flex items-center gap-1 text-[10px] text-[var(--fg-color)]/70 border border-[var(--border-color)] px-2 py-0.5 hover:border-[var(--accent-color)] hover:text-[var(--fg-color)] transition-colors uppercase tracking-wider font-mono">
+          {isOpen ? "[−] HIDE PLAYER" : "[+] LOAD TRACK"}
         </span>
       </button>
 
       {/* Expanded Player Body */}
       {isOpen && (
-        <div className="p-3 bg-gray-950/40 border-t border-gray-900/60 transition-all duration-300">
+        <div className="p-3 bg-[var(--panel-bg)]/80 border-t-2 border-[var(--border-color)] transition-all duration-300">
           {player.type === "direct" ? (
             <div className="py-2 px-1">
               <audio
                 src={player.embedUrl}
                 controls
-                className="w-full h-8 outline-none filter invert brightness-90 contrast-200"
-                style={{ borderRadius: "8px" }}
+                className="w-full h-8 outline-none"
               />
             </div>
           ) : player.type === "link" ? (
@@ -105,9 +104,9 @@ export default function AmbientMusicPlayer({ songUrl }: AmbientMusicPlayerProps)
                 href={player.embedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 hover:bg-gray-850 text-gray-300 hover:text-white rounded-full transition-all text-[11px]"
+                className="retro-button inline-flex items-center gap-2 px-4 py-2 uppercase text-[11px] font-bold text-glow"
               >
-                <span>🎵</span> Open ambient audio link external ↗
+                <span>🎵</span> OPEN EXTERNAL AMBIENT STREAM ↗
               </a>
             </div>
           ) : (
@@ -118,7 +117,7 @@ export default function AmbientMusicPlayer({ songUrl }: AmbientMusicPlayerProps)
               frameBorder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share"
               loading="lazy"
-              className="rounded-lg shadow-inner bg-transparent"
+              className="shadow-inner border border-[var(--border-color)]"
             />
           )}
         </div>
