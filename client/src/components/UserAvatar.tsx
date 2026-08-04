@@ -62,18 +62,19 @@ export default function UserAvatar({
 
   return (
     <div
-      className={`rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner select-none ${className}`}
+      className={`rounded-none bg-[var(--panel-bg)] border-2 border-[var(--border-color)] flex items-center justify-center overflow-hidden shrink-0 shadow-inner select-none font-mono text-[var(--fg-color)] ${className}`}
+      title={name || "Retro User Avatar"}
     >
       {isImage ? (
         <img
           src={pixelatedSrc || image}
           alt={name || "User Avatar"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover text-glow"
           style={{ imageRendering: "pixelated" }}
           loading="lazy"
         />
       ) : (
-        <span className="text-gray-400 font-serif leading-none">
+        <span className="font-mono leading-none font-bold text-glow">
           {image || initial || fallbackEmoji}
         </span>
       )}
