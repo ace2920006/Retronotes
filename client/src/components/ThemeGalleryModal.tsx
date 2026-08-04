@@ -128,17 +128,29 @@ export const ThemeGalleryModal: React.FC<ThemeGalleryModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
           {/* Controls Bar: Search & Quick Actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <div className="relative flex-1">
+            <div className="relative flex-1 flex items-center">
               <span className="absolute left-2.5 top-2 text-xs opacity-60">🔍</span>
               <input
                 type="text"
                 placeholder="Search 16 retro display themes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] font-mono placeholder:opacity-50"
+                className="w-full pl-8 pr-16 py-1.5 bg-[var(--bg-color)] border-2 border-[var(--border-color)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-color)] font-mono placeholder:opacity-50"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 text-[9px] font-bold text-[var(--fg-color)]/70 hover:text-[var(--fg-color)] border border-[var(--border-color)] hover:border-[var(--accent-color)] px-1.5 py-0.5 bg-[var(--panel-bg)] font-mono cursor-pointer transition-colors"
+                  title="Clear search query"
+                >
+                  [CLR]
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono uppercase bg-[var(--bg-color)] border border-[var(--border-color)] px-2 py-1 text-[var(--accent-color)] text-glow hidden sm:inline-block">
+                {filteredThemes.length} / {THEMES.length} REGISTRY
+              </span>
               <button
                 onClick={handleRandomizeTheme}
                 className="retro-button px-3 py-1.5 text-xs uppercase font-bold flex items-center gap-1.5 text-amber-300"
