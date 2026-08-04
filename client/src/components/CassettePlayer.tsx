@@ -31,6 +31,7 @@ export default function CassettePlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStationIdx, setCurrentStationIdx] = useState(0);
   const [volume, setVolume] = useState(0.5);
+  const [prevVolume, setPrevVolume] = useState(0.5);
   const [loading, setLoading] = useState(false);
   const [tapeCounter, setTapeCounter] = useState(124);
   
