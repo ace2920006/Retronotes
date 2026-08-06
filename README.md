@@ -1,5 +1,4 @@
 # 📒 RetroNotes
-
 ![RetroNotes Banner](./retronotes_banner.png)
 
 > **"Every thought deserves a page."** — RetroNotes combines nostalgic CRT computing aesthetics with state-of-the-art web technology.
@@ -37,9 +36,7 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 - 👯 **Duplicate Notes**: Instantly clone active notes along with tags, color, and metadata (`Ctrl+D` / `CLONE`).
 - 🧹 **Clean Formatting**: One-click paragraph & whitespace cleanup utility that normalizes extra blank lines and removes trailing spaces (`Ctrl+Shift+F`).
 - 🔍 **Search & Semantic AI Search**: Instant keyword search, tag filtering, and natural language Gemini AI semantic search (`?query`).
-
 ---
-
 ## 📤 Export & 📥 Import Notes
 
 ### 📤 Export Formats & Backups
@@ -52,9 +49,7 @@ A minimal, high-performance retro-themed note-taking web application featuring C
 
 ### 📥 Import Notes
 - 📂 **Import `notes.json`**: One-click import tool allowing users to upload `notes.json` files to automatically restore or bulk-create notes in their workspace.
-
 ---
-
 ## ⌨️ Keyboard Shortcuts
 
 | Shortcut | Action | Description |
