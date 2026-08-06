@@ -229,7 +229,6 @@ Open [http://localhost:3001](http://localhost:3001) in your browser.
 - [ ] 🤝 Collaborative real-time note editing rooms (Socket.IO)
 - [ ] 🎙️ Ambient Lofi Radio & text-to-speech voice reader
 - [ ] ☁️ Direct cloud export (Google Drive & Dropbox integration)
-
 ---
 
 ## 📄 License
